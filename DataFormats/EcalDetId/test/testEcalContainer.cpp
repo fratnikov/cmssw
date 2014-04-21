@@ -39,54 +39,50 @@ void testEcalContainer::testContainer() {
   EcalContainer<EBDetId, float> ec;
   std::cout << "EcalContainer istantiated." << std::endl;
 
-  for (int ieta=EBDetId::MIN_IETA;ieta<=EBDetId::MAX_IETA;ieta++)
+  for (int ieta=EBDetId::MIN_IETA;ieta<=EBDetId::MAX_IETA;ieta++) {
     for (int iphi=EBDetId::MIN_IPHI;iphi<=EBDetId::MAX_IPHI;iphi++)
       {
 	//EBDetId Zside 1 
-	try
-	  {
-	    {
-	      EBDetId aPositiveId(ieta,iphi);
-              ec[aPositiveId] = aPositiveId.hashedIndex();
-              EcalContainer<EBDetId, float>::const_iterator citer = ec.find(aPositiveId.rawId());
-              if ( citer != ec.end() ) {
-                      CPPUNIT_ASSERT( *(ec.find(aPositiveId.rawId())) == aPositiveId.hashedIndex());
-              }
-	    }
-
-	    //EBDetId Zside -1 
-	    {
-	      EBDetId aNegativeId(-1*ieta,iphi);
-              ec[aNegativeId] = aNegativeId.hashedIndex();
-              EcalContainer<EBDetId, float>::const_iterator citer = ec.find(aNegativeId.rawId());
-              if ( citer != ec.end() ) {
-                      CPPUNIT_ASSERT( *(ec.find(aNegativeId.rawId())) == aNegativeId.hashedIndex());
-              }
-	    }
-	  }
-	catch ( cms::Exception &e ) 
-	  { 
-	    bool cmsExceptionCought=false;
-	    CPPUNIT_ASSERT(cmsExceptionCought);
-	  }
-	catch ( std::exception &e ) 
-	  { 
-	    bool stdExceptionCought=false;
-	    CPPUNIT_ASSERT(stdExceptionCought);
-	  }
+	EBDetId ebId((iphi%2)?ieta:-ieta,iphi); // fill every second
       }
+  }
+  
+
+  for (int ieta=EBDetId::MIN_IETA;ieta<=EBDetId::MAX_IETA;ieta++) {
+    for (int iphi=EBDetId::MIN_IPHI;iphi<=EBDetId::MAX_IPHI;iphi++)
+      {
+	//EBDetId Zside 1 
+	EBDetId aPositiveId(ieta,iphi);
+	EcalContainer<EBDetId, float>::const_iterator citer = ec.find(aPositiveId.rawId());
+	if ( citer != ec.end() ) {
+	  if (*(ec.find(aPositiveId.rawId())) != aPositiveId.hashedIndex()) {
+	    //  std::cout << "testEcalContainer::testContainer()-> assert " << aPositiveId << '/' << aPositiveId.hashedIndex() << '/' << *(ec.find(aPositiveId.rawId())) << '/' << ec[aPositiveId] << std::endl;
+	    CPPUNIT_ASSERT( *(ec.find(aPositiveId.rawId())) == aPositiveId.hashedIndex());
+	  }
+	}
+	//EBDetId Zside -1 
+	{
+	  EBDetId aNegativeId(-1*ieta,iphi);
+	  ec[aNegativeId] = aNegativeId.hashedIndex();
+	  EcalContainer<EBDetId, float>::const_iterator citer = ec.find(aNegativeId.rawId());
+	  if ( citer != ec.end() ) {
+	    CPPUNIT_ASSERT( *(ec.find(aNegativeId.rawId())) == aNegativeId.hashedIndex());
+	  }
+	}
+      }
+  }
   std::cout << "Loop finished." << std::endl;
   
   for (int i=0; i!= EBDetId::kSizeForDenseIndexing;++i) {
-	    CPPUNIT_ASSERT( ec.item(i) == i);
-          //std::cout << ec.item(i) << " " << i << std::endl;
-  }
-
-  float i = 0.;
-  for ( EcalContainer<EBDetId, float>::const_iterator citer = ec.begin(); citer != ec.end(); citer++) {
-	    CPPUNIT_ASSERT( (*citer) == i);
-            ++i;
+    CPPUNIT_ASSERT( ec.item(i)  == 0 || ec.item(i) == i);
+    //std::cout << ec.item(i) << " " << i << std::endl;
   }
   
+  // F.R. iterators are not equivalent to hash indexes anymore
+  //  float i = 0.;
+  //   for ( EcalContainer<EBDetId, float>::const_iterator citer = ec.begin(); citer != ec.end(); citer++) {
+  // 	    CPPUNIT_ASSERT( (*citer) == i);
+  //             ++i;
+  //   }
   
 }

@@ -115,13 +115,17 @@ public:
    */
   static int distanceY(const EKDetId& a,const EKDetId& b);
 
-  /** Feed the monster. We actually can not implement
-   *  full dense index for this dynamic EKDetId implementation
+  /** static non-minimal hash index with holes
    */
+  enum {
+    kSizeForDenseIndexing = 
+    2 * 4 *   // +-Z * 4 sectors
+    21 * 21 * // maximum supermodules in quadrant  
+    5 * 5     // modules in SM
+  };
   uint32_t denseIndex() const;
 
-  /** Feed the monster. We actually can not implement
-   *  full dense index for this dynamic EKDetId implementation
+  /** static non-minimal hash index with holes
    */
   static EKDetId detIdFromDenseIndex( uint32_t din );
  

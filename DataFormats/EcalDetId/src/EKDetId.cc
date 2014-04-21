@@ -29,12 +29,16 @@ int EKDetId::distanceY(const EKDetId& a,const EKDetId& b) {
 }
 
 const int MAX_ROW = 42; 
+const int MAX_MODULE = MAX_ROW * 5; 
 uint32_t EKDetId::denseIndex() const {
-  return EKDetId (ix(), iy(), zside()).rawId();
+  return (ix() * MAX_MODULE + iy()) * 2 + (zside()>0 ? 1 : 0);
 }
 
 EKDetId EKDetId::detIdFromDenseIndex( uint32_t din ) {
-  return EKDetId (din);
+  unsigned iz = din % 2;
+  unsigned iy = (din /= 2) % MAX_MODULE; 
+  unsigned ix = (din /= MAX_MODULE) % MAX_MODULE; 
+  return EKDetId (ix, iy, (iz == 0 ? -1 : 1));
 }
 
 #include <ostream>
