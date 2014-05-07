@@ -7,8 +7,12 @@ simEcalDigis = cms.EDProducer("EcalSelectiveReadoutProducer",
     # Instance name of input EB digi collections
     EBdigiCollection = cms.string(''),
 
-    # Instance name of input EB digi collections
+    # Instance name of input EE digi collections
     EEdigiCollection = cms.string(''),
+
+    # Instance name of input EK digi collections
+    EKdigiCollection = cms.InputTag('simEcalUnsuppressedDigis','',''),
+    #EKdigiCollection = cms.InputTag('mix','',''),
 
     # Instance name of output EB SR flags collection
     EBSrFlagCollection = cms.string('ebSrFlags'),
@@ -16,11 +20,17 @@ simEcalDigis = cms.EDProducer("EcalSelectiveReadoutProducer",
     # Instance name of output EE SR flags collection
     EESrFlagCollection = cms.string('eeSrFlags'),
 
+    # Instance name of output EK SR flags collection
+    EKSrFlagCollection = cms.string('ekSrFlags'),
+
     # Instance name of output EB digis collection
     EBSRPdigiCollection = cms.string('ebDigis'),
 
     # Instance name of output EE digis collection
     EESRPdigiCollection = cms.string('eeDigis'),
+
+    # Instance name of output EE digis collection
+    EKSRPdigiCollection = cms.string('ekDigis'),
 
     # Switch for reading SRP settings from condition database
     configFromCondDB = cms.bool(True),

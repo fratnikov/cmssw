@@ -2,6 +2,7 @@
 #include "SimCalorimetry/EcalSelectiveReadoutAlgos/src/EcalSelectiveReadout.h"
 #include "DataFormats/EcalDigi/interface/EEDataFrame.h"
 #include "DataFormats/EcalDigi/interface/EBDataFrame.h"
+#include "DataFormats/EcalDigi/interface/EKDataFrame.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -70,6 +71,8 @@ EcalSelectiveReadoutSuppressor::EcalSelectiveReadoutSuppressor(const edm::Parame
   
   adcToGeV = settings->eeDccAdcToGeV_;
   thrUnit[ENDCAP] = adcToGeV/4.; //unit=1/4th ADC count
+  thrUnit[SHASHLIK] = adcToGeV; //unit=1/4th ADC count
+
   ecalSelectiveReadout
     = auto_ptr<EcalSelectiveReadout>(new EcalSelectiveReadout(
 							      settings->deltaEta_[0],
@@ -145,28 +148,17 @@ void EcalSelectiveReadoutSuppressor::initCellThresholds(double barrelLowInterest
   //  highInterestSrFlag[ENDCAP] = thr2Srf(highInterestThr[ENDCAP],
   //			       EcalSrFlag::SRF_ZS2);
 
+  lowInterestThr[SHASHLIK] = internalThreshold(endcapLowInterest, SHASHLIK);
+  //lowInterestSrFlag[ENDCAP] = thr2Srf(lowInterestThr[ENDCAP],
+  //			      EcalSrFlag::SRF_ZS1);
+
+  highInterestThr[SHASHLIK] = internalThreshold(endcapHighInterest, SHASHLIK); 
+  //  highInterestSrFlag[ENDCAP] = thr2Srf(highInterestThr[ENDCAP],
+  //			       EcalSrFlag::SRF_ZS2);
+
   const int FORCED_MASK = EcalSelectiveReadout::FORCED_MASK;
   
   for(int iSubDet = 0; iSubDet<2; ++iSubDet){
-    //low interest
-    //zsThreshold[iSubDet][0] = lowInterestThr[iSubDet];
-    //srFlags[iSubDet][0] = lowInterestSrFlag[iSubDet];
-    //srFlags[iSubDet][0 + FORCED_MASK] = FORCED_MASK | lowInterestSrFlag[iSubDet];
-
-    //single->high interest
-    //zsThreshold[iSubDet][1] = highInterestThr[iSubDet];
-    //srFlags[iSubDet][1] = highInterestSrFlag[iSubDet];
-    //srFlags[iSubDet][1 +  FORCED_MASK] = FORCED_MASK | highInterestSrFlag[iSubDet];
-
-    //neighbour->high interest
-    //zsThreshold[iSubDet][2] = highInterestThr[iSubDet];
-    //srFlags[iSubDet][2] = highInterestSrFlag[iSubDet];
-    //srFlags[iSubDet][2 + FORCED_MASK] = FORCED_MASK | highInterestSrFlag[iSubDet];
-
-    //center->high interest
-    //zsThreshold[iSubDet][3] = highInterestThr[iSubDet];
-    //srFlags[iSubDet][3] = highInterestSrFlag[iSubDet];
-    //srFlags[iSubDet][3 + FORCED_MASK] = FORCED_MASK | highInterestSrFlag[iSubDet];
     for(size_t i = 0; i < 8; ++i){
       srFlags[iSubDet][i] = actions_[i];
       if((actions_[i] & ~FORCED_MASK) == 0) zsThreshold[iSubDet][i] = numeric_limits<int>::max();
@@ -270,16 +262,19 @@ bool EcalSelectiveReadoutSuppressor::accept(edm::DataFrame const & frame,
 void EcalSelectiveReadoutSuppressor::run(const edm::EventSetup& eventSetup,   
 					 const EcalTrigPrimDigiCollection & trigPrims,
 					 EBDigiCollection & barrelDigis,
-					 EEDigiCollection & endcapDigis){
+					 EEDigiCollection & endcapDigis,
+					 EKDigiCollection & shashlikDigis){
   EBDigiCollection selectedBarrelDigis;
   EEDigiCollection selectedEndcapDigis;
+  EKDigiCollection selectedShashlikDigis;
   
-  run(eventSetup, trigPrims, barrelDigis, endcapDigis,
-      &selectedBarrelDigis, &selectedEndcapDigis, 0, 0);
+  run(eventSetup, trigPrims, barrelDigis, endcapDigis, shashlikDigis,
+      &selectedBarrelDigis, &selectedEndcapDigis, &selectedShashlikDigis, 0, 0, 0);
   
 //replaces the input with the suppressed version
   barrelDigis.swap(selectedBarrelDigis);
   endcapDigis.swap(selectedEndcapDigis);  
+  shashlikDigis.swap(selectedShashlikDigis);  
 }
 
 
@@ -288,15 +283,18 @@ EcalSelectiveReadoutSuppressor::run(const edm::EventSetup& eventSetup,
 				    const EcalTrigPrimDigiCollection & trigPrims,
 				    const EBDigiCollection & barrelDigis,
 				    const EEDigiCollection & endcapDigis,
+				    const EKDigiCollection & shashlikDigis,
 				    EBDigiCollection* selectedBarrelDigis,
 				    EEDigiCollection* selectedEndcapDigis,
+				    EKDigiCollection* selectedShashlikDigis,
 				    EBSrFlagCollection* ebSrFlags,
-				    EESrFlagCollection* eeSrFlags){
+				    EESrFlagCollection* eeSrFlags,
+				    EKSrFlagCollection* ekSrFlags){
   ++ievt_;
   if(!trigPrimBypass_ || ttThresOnCompressedEt_){//uses output of TPG emulator
     setTtFlags(trigPrims);
   } else{//debug mode, run w/o TP digis
-    setTtFlags(eventSetup, barrelDigis, endcapDigis);
+    setTtFlags(eventSetup, barrelDigis, endcapDigis, shashlikDigis);
   }
 
   ecalSelectiveReadout->runSelectiveReadout0(ttFlags);  
@@ -329,21 +327,35 @@ EcalSelectiveReadoutSuppressor::run(const edm::EventSetup& eventSetup,
     }
   }
 
-   if(ievt_ <= 10){
-     if(selectedEndcapDigis) LogDebug("EcalSelectiveReadout")
+  // and shashliks
+  if(selectedShashlikDigis){
+    selectedShashlikDigis->reserve(shashlikDigis.size());
+    for(EKDigiCollection::const_iterator digiItr = shashlikDigis.begin();
+	digiItr != shashlikDigis.end(); ++digiItr){
+      int interestLevel = 0;
+      //= ecalSelectiveReadout->getCrystalInterest(EKDigiCollection::DetId(digiItr->id()))
+      //& ~EcalSelectiveReadout::FORCED_MASK;
+      if(accept(*digiItr, zsThreshold[SHASHLIK][interestLevel])){
+	selectedShashlikDigis->push_back(digiItr->id(), digiItr->begin());
+      }
+    }
+  } else assert(false);
+  if(ievt_ <= 10){
+     if(selectedShashlikDigis) LogDebug("EcalSelectiveReadout")
 			       //       << __FILE__ << ":" << __LINE__ << ": "
        << "Number of EB digis passing the SR: "
        << selectedBarrelDigis->size()
        << " / " << barrelDigis.size() << "\n";
-     if(selectedEndcapDigis) LogDebug("EcalSelectiveReadout")
+     if(selectedShashlikDigis) std::cout //LogDebug("EcalSelectiveReadout")
 			       //       << __FILE__ << ":" << __LINE__ << ": "
-       << "\nNumber of EE digis passing the SR: "
-       << selectedEndcapDigis->size()
-       << " / " << endcapDigis.size() << "\n";
+       << "\nNumber of EK digis passing the SR: "
+       << selectedShashlikDigis->size()
+       << " / " << shashlikDigis.size() << "\n";
    }
   
   if(ebSrFlags) ebSrFlags->reserve(34*72);
   if(eeSrFlags) eeSrFlags->reserve(624);
+  if(ekSrFlags) ekSrFlags->reserve(624);
   //SR flags:
   for(int iZ = -1; iZ <=1; iZ+=2){ //-1=>EE-, EB-, +1=>EE+, EB+
     //barrel:
@@ -395,6 +407,9 @@ EcalSelectiveReadoutSuppressor::run(const edm::EventSetup& eventSetup,
 	}
       } //next iY
     } //next iX
+
+    //shashlik:
+    // to be implemented
   }
 }
 
@@ -451,17 +466,21 @@ vector<int> EcalSelectiveReadoutSuppressor::getFIRWeigths() {
 void
 EcalSelectiveReadoutSuppressor::setTtFlags(const edm::EventSetup& es,
 					   const EBDigiCollection& ebDigis,
-					   const EEDigiCollection& eeDigis){
+					   const EEDigiCollection& eeDigis,
+					   const EKDigiCollection& ekDigis){
   double trigPrim[nTriggerTowersInEta][nTriggerTowersInPhi];
 
   //ecal geometry:
 //  static const CaloSubdetectorGeometry* eeGeometry = 0;
 //  static const CaloSubdetectorGeometry* ebGeometry = 0;
   const CaloSubdetectorGeometry* eeGeometry = 0;
+//   const CaloSubdetectorGeometry* ekGeometry = 0;
   const CaloSubdetectorGeometry* ebGeometry = 0;
 //  if(eeGeometry==0 || ebGeometry==0){
     edm::ESHandle<CaloGeometry> geoHandle;
     es.get<CaloGeometryRecord>().get(geoHandle);
+//     ekGeometry
+//       = (*geoHandle).getSubdetectorGeometry(DetId::Ecal, EcalShashlik);
     eeGeometry
       = (*geoHandle).getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
     ebGeometry
@@ -506,6 +525,24 @@ EcalSelectiveReadoutSuppressor::setTtFlags(const edm::EventSetup& es,
       trigPrim[iTTEta0][iTTPhi0] += e*sin(theta);
     }
   }
+  // to be implemented Shervin
+//   for(EKDigiCollection::const_iterator it = ekDigis.begin();
+//       it != ekDigis.end(); ++it){
+//     EKDataFrame frame(*it);
+//     const EcalTrigTowerDetId& ttId = theTriggerMap->towerOf(frame.id());
+//     const int iTTEta0 = iTTEta2cIndex(ttId.ieta());
+//     const int iTTPhi0 = iTTPhi2cIndex(ttId.iphi());
+// //     cout << __FILE__ << ":" << __LINE__ << ": EK xtal->TT "
+// // 	 <<  ((EKDetId&)frame.id()).ix()
+// // 	 << "," << ((EKDetId&)frame.id()).iy()
+// // 	 << " -> " << ttId.ieta() << "," << ttId.iphi() << "\n";
+//     double theta = eeGeometry->getGeometry(frame.id())->getPosition().theta();
+//     double e = frame2Energy(frame);
+//     if(!trigPrimBypassWithPeakFinder_
+//        || ((frame2Energy(frame,-1) < e) && (frame2Energy(frame, 1) < e))){
+//       trigPrim[iTTEta0][iTTPhi0] += e*sin(theta);
+//     }
+//   }
 
   //dealing with pseudo-TT in two inner EE eta-ring:
   int innerTTEtas[] = {0, 1, 54, 55};
