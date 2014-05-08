@@ -6,6 +6,7 @@
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 //#include "DataFormats/EcalDetId/interface/EKDetId.h"
 
+#define FIXED_EE_HASHEDINDEX_FOR_EK 13245
 template < typename T >
 class EcalCondObjectContainer {
         public:
@@ -33,6 +34,11 @@ class EcalCondObjectContainer {
                 inline
                 const Item & endcap( size_t hashedIndex ) const {
                         return ee_.item(hashedIndex);
+                }
+
+                inline
+                const Item & shashlik( size_t hashedIndex ) const {
+		  return ee_.item(FIXED_EE_HASHEDINDEX_FOR_EK); // Shervin to be fixed!
                 }
 
                 inline
@@ -83,7 +89,7 @@ class EcalCondObjectContainer {
                                 case EcalShashlik :
                                         { 
 					  //return ek_.find(rawId);
-					  return ee_.begin();
+					  return ee_.begin()+FIXED_EE_HASHEDINDEX_FOR_EK;
                                         }
                                         break;
                                 default:
@@ -136,7 +142,7 @@ class EcalCondObjectContainer {
                                 case EcalShashlik:
                                         { 
 					  //return ek_[rawId];
-					  return ee_[10];
+					  return ee_[FIXED_EE_HASHEDINDEX_FOR_EK];
                                         }
                                         break;
                                 default:
@@ -163,7 +169,7 @@ class EcalCondObjectContainer {
                                 case EcalShashlik :
                                         { 
 					  //return ek_[rawId];
-					  return ee_[10];
+					  return ee_[FIXED_EE_HASHEDINDEX_FOR_EK];
                                         }
                                         break;
                                 default:
