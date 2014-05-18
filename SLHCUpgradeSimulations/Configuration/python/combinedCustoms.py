@@ -115,6 +115,10 @@ def cust_2023SHCal(process):
         process.simEcalTriggerPrimitiveDigis.BarrelOnly = cms.bool(True)
     if hasattr(process,'digitisation_step'):
     	process.mix.digitizers.ecal.accumulatorType = cms.string('EcalPhaseIIDigiProducer')
+    if hasattr(process,'reconstruction_step'):
+    	process.ecalRecHit.EEuncalibRecHitCollection = cms.InputTag("","")
+
+       
     return process
 
 def cust_2023HGCal(process):
