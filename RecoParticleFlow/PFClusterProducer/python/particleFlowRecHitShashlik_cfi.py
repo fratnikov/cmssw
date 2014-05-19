@@ -13,7 +13,7 @@ particleFlowRecHitEK = cms.EDProducer("PFRecHitProducer",
     producers = cms.VPSet(
            cms.PSet(
              name = cms.string("PFEKRecHitCreator"),
-             src  = cms.InputTag("shashlikRecHit"),
+             src  = cms.InputTag("ecalRecHit:EcalRecHitsEK"),
              qualityTests = cms.VPSet( 
                 cms.PSet(
                   name = cms.string("PFRecHitQTestThreshold"),

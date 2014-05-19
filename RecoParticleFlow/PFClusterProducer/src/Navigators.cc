@@ -126,13 +126,14 @@ typedef  PFRecHitDualNavigator<PFLayer::ECAL_BARREL,
 
 #include "Geometry/CaloTopology/interface/ShashlikTopology.h"
 #include "Geometry/Records/interface/ShashlikNumberingRecord.h"
-class PFRecHitShashlikNavigator : public PFRecHitCaloNavigator<EKDetId,ShashlikTopology>{
+class PFRecHitShashlikNavigator : public PFRecHitCaloNavigator<EKDetId,ShashlikTopology,false>{
 public:
   PFRecHitShashlikNavigator(const edm::ParameterSet& iConfig) { topology_ = NULL; }
   void beginEvent(const edm::EventSetup& iSetup) {
     edm::ESHandle<ShashlikTopology> topoHandle;
     iSetup.get<ShashlikNumberingRecord>().get(topoHandle);
-    //topology_ = topoHandle.product();
+    topology_.release();
+    topology_.reset(topoHandle.product());
   }
 };
 typedef PFRecHitDualNavigator<PFLayer::ECAL_BARREL,
