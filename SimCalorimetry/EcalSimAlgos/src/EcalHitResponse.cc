@@ -251,9 +251,7 @@ EcalHitResponse::EcalSamples*
 EcalHitResponse::findSignal( const DetId& detId )
 {
    const unsigned int di ( CaloGenericDetId( detId ).denseIndex() ) ;
-
    EcalSamples* result ( vSamAll( di ) ) ;
-   //if(result->id() == DetId())    std::cerr << "[findSignal] denseIndex = " << di << "\t" << "result id == null" << std::endl;
    if( result->zero() ) m_index.push_back( di ) ;
    return result ;
 }
@@ -270,9 +268,8 @@ EcalHitResponse::analogSignalAmplitude( const DetId& detId, float energy ) const
    if(m_useLCcorrection == true && detId.subdetId() != 3) {
      lasercalib = findLaserConstant(detId);
    }
-
+   
    double npe ( energy/lasercalib*parameters.simHitToPhotoelectrons( detId ) ) ;
-
    // do we need to doPoisson statistics for the photoelectrons?
    if( parameters.doPhotostatistics() ) npe = ranPois()->fire( npe ) ;
 
@@ -284,7 +281,9 @@ EcalHitResponse::analogSignalAmplitude( const DetId& detId, float energy ) const
 double 
 EcalHitResponse::timeOfFlight( const DetId& detId ) const 
 {
-  //std::cerr << "[timeOfFlight] " << detId.rawId() << "\t" << detId.subdetId() << std::endl;
+#ifdef DEBUG
+  std::cerr << "[timeOfFlight] " << detId.rawId() << "\t" << detId.subdetId() << std::endl;
+#endif
   const CaloCellGeometry* cellGeometry ( geometry()->getGeometry( detId ) ) ;
   assert( 0 != cellGeometry ) ;
   return cellGeometry->getPosition().mag()*cm/c_light ; // Units of c_light: mm/ns
