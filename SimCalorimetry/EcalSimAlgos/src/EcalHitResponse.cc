@@ -21,7 +21,7 @@
 #include "CLHEP/Units/GlobalSystemOfUnits.h" 
 #include <iostream>
 
-
+//#define DEBUG
 
 EcalHitResponse::EcalHitResponse( const CaloVSimParameterMap* parameterMap ,
 				  const CaloVShape*           shape         ) :
@@ -207,6 +207,9 @@ void
 EcalHitResponse::putAnalogSignal( const PCaloHit& hit )
 {
    const DetId detId ( hit.id() ) ;
+#ifdef DEBUG
+   std::cerr << "[putAnalogSignal] subdet = " << detId.subdetId() << std::endl;
+#endif
 
    const CaloSimParameters* parameters ( params( detId ) ) ;
 
@@ -226,7 +229,6 @@ EcalHitResponse::putAnalogSignal( const PCaloHit& hit )
 			  - BUNCHSPACE*( parameters->binOfMaximum()
 					 - m_phaseShift             ) ) ;
    double binTime ( tzero ) ;
-
    EcalSamples& result ( *findSignal( detId ) ) ;
 
    const unsigned int rsize ( result.size() ) ;
@@ -249,7 +251,9 @@ EcalHitResponse::EcalSamples*
 EcalHitResponse::findSignal( const DetId& detId )
 {
    const unsigned int di ( CaloGenericDetId( detId ).denseIndex() ) ;
+
    EcalSamples* result ( vSamAll( di ) ) ;
+   //if(result->id() == DetId())    std::cerr << "[findSignal] denseIndex = " << di << "\t" << "result id == null" << std::endl;
    if( result->zero() ) m_index.push_back( di ) ;
    return result ;
 }
@@ -280,9 +284,10 @@ EcalHitResponse::analogSignalAmplitude( const DetId& detId, float energy ) const
 double 
 EcalHitResponse::timeOfFlight( const DetId& detId ) const 
 {
-   const CaloCellGeometry* cellGeometry ( geometry()->getGeometry( detId ) ) ;
-   assert( 0 != cellGeometry ) ;
-   return cellGeometry->getPosition().mag()*cm/c_light ; // Units of c_light: mm/ns
+  //std::cerr << "[timeOfFlight] " << detId.rawId() << "\t" << detId.subdetId() << std::endl;
+  const CaloCellGeometry* cellGeometry ( geometry()->getGeometry( detId ) ) ;
+  assert( 0 != cellGeometry ) ;
+  return cellGeometry->getPosition().mag()*cm/c_light ; // Units of c_light: mm/ns
 }
 
 void 

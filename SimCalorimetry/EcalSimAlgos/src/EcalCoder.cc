@@ -102,6 +102,9 @@ EcalCoder::encode( const EcalSamples& ecalSamples ,
 
   
    DetId detId = ecalSamples.id();             
+   if(detId==DetId()) 
+     throw cms::Exception("EcalCoder") << "detId is null " << "\tsamples size=" << ecalSamples.size();
+     //std::cerr <<"[EcalCoder] DetId null" << std::endl;
    double Emax = fullScaleEnergy(detId);       
 
    //....initialisation
