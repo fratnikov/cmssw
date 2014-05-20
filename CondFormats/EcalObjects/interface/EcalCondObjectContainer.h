@@ -1,9 +1,10 @@
 #ifndef ECAL_COND_OBJECT_CONTAINER_HH
 #define ECAL_COND_OBJECT_CONTAINER_HH
 
-#include "DataFormats/EcalDetId/interface/EcalContainer.h"
+#include "CondFormats/EcalObjects/interface/EcalContainer.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+//#include "DataFormats/EcalDetId/interface/EKDetId.h"
 
 template < typename T >
 class EcalCondObjectContainer {
@@ -48,6 +49,12 @@ class EcalCondObjectContainer {
                                                 ee_.insert(a);
                                         }
                                         break;
+                                case EcalShashlik :
+                                        { 
+					  //ek_.insert(a);
+					  ee_.insert(a);
+                                        }
+                                        break;
                                 default:
                                         // FIXME (add throw)
                                         return;
@@ -73,6 +80,12 @@ class EcalCondObjectContainer {
                                                 return ee_.find(rawId);
                                         }
                                         break;
+                                case EcalShashlik :
+                                        { 
+					  //return ek_.find(rawId);
+					  return ee_.begin();
+                                        }
+                                        break;
                                 default:
                                         // FIXME (add throw)
                                         return ee_.end();
@@ -86,7 +99,7 @@ class EcalCondObjectContainer {
 
                 inline
                 const_iterator end() const {
-                        return ee_.end();
+		  return ee_.end();
                 }
 
                 inline
@@ -101,7 +114,7 @@ class EcalCondObjectContainer {
 
                 inline
                 size_t size() const {
-                        return eb_.size() + ee_.size();
+		  return eb_.size() + ee_.size();// + ek_.size();
                 }
                 // add coherent operator++, not needed now -- FIXME
 
@@ -118,6 +131,12 @@ class EcalCondObjectContainer {
                                 case EcalEndcap :
                                         { 
                                                 return ee_[rawId];
+                                        }
+                                        break;
+                                case EcalShashlik:
+                                        { 
+					  //return ek_[rawId];
+					  return ee_[10];
                                         }
                                         break;
                                 default:
@@ -141,6 +160,12 @@ class EcalCondObjectContainer {
                                                 return ee_[rawId];
                                         }
                                         break;
+                                case EcalShashlik :
+                                        { 
+					  //return ek_[rawId];
+					  return ee_[10];
+                                        }
+                                        break;
                                 default:
                                         // FIXME (add throw)
                                         return dummy;
@@ -150,6 +175,7 @@ class EcalCondObjectContainer {
         private:
                 EcalContainer< EBDetId, Item > eb_;
                 EcalContainer< EEDetId, Item > ee_;
+		//		EcalContainer< EKDetId, Item > ek_;
 };
 
 typedef EcalCondObjectContainer<float> EcalFloatCondObjectContainer;

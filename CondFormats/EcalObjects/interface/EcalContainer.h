@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 
+#include "FWCore/Utilities/interface/Exception.h" /// shervin
 // #include <iostream>
 
 
@@ -23,8 +24,8 @@ class EcalContainer {
                 typedef T Item;
                 typedef Item value_type;
                 typedef typename std::vector<Item> Items; 
-                typedef typename std::vector<Item>::const_iterator const_iterator;
-                typedef typename std::vector<Item>::iterator iterator;
+                typedef typename Items::const_iterator const_iterator;
+                typedef typename Items::iterator iterator;
 
                    
                 EcalContainer() {checkAndResize();}
@@ -42,9 +43,11 @@ class EcalContainer {
                 }
 
                 inline Item & operator[](uint32_t rawId) {
+		  throw cms::Exception("EcalContainer::[]") << "removing this method";
 		  checkAndResize();
 		  static Item dummy;
 		  DetId id(rawId);
+
 		  if ( !isValidId(id) ) return dummy;
 		  return m_items[id.hashedIndex()];
                 }
@@ -67,6 +70,7 @@ class EcalContainer {
 		}
 
                 inline Item const & operator[](uint32_t rawId) const {
+		  throw cms::Exception("EcalContainer::[]") << "removing this method";
 		  //                        if (m_items.size()==0) {
 		  //	  std::cout << "resizing to " << DetId::kSizeForDenseIndexing << std::endl;
                   //              m_items.resize((size_t) DetId::kSizeForDenseIndexing);
@@ -78,6 +82,7 @@ class EcalContainer {
                 }
 
                 inline const_iterator find(uint32_t rawId) const {
+		  throw cms::Exception("EcalContainer::[]") << "removing this method";
                         DetId ib(rawId);
                         if ( !isValidId(ib) ) return m_items.end();
                         return m_items.begin() + ib.hashedIndex();
@@ -103,7 +108,6 @@ class EcalContainer {
                 };
 
                 std::vector<Item> m_items;
-
 };
 
 
