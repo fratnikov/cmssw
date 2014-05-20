@@ -117,7 +117,19 @@ def cust_2023SHCal(process):
     	process.mix.digitizers.ecal.accumulatorType = cms.string('EcalPhaseIIDigiProducer')
     if hasattr(process,'reconstruction_step'):
     	process.ecalRecHit.EEuncalibRecHitCollection = cms.InputTag("","")
-
+        #remove the old EE pfrechit producer
+        del process.particleFlowRecHitECALWithTime.producers[1]
+        del process.particleFlowRecHitECAL.producers[1]
+        process.particleFlowClusterEBEKMerger = cms.EDProducer('PFClusterCollectionMerger',
+                                                               inputs = cms.VInputTag(cms.InputTag('particleFlowClusterECALWithTimeSelected'),
+                                                                                      cms.InputTag('particleFlowClusterEKUncorrected')
+                                                                                      )
+                                                               )   
+        process.pfClusteringECAL.remove(process.particleFlowClusterECAL)
+        process.pfClusteringEK += process.particleFlowClusterEBEKMerger
+        process.pfClusteringEK += process.particleFlowClusterECAL
+        process.particleFlowClusterECAL.inputECAL = cms.InputTag('particleFlowClusterEBEKMerger')
+        process.particleFlowCluster += process.pfClusteringEK
        
     return process
 
