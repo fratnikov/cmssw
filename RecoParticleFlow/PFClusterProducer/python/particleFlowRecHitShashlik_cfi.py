@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 #until we are actually clustering across the EB/EE boundary
 #it is faster to cluster EB and EE as separate
 
-particleFlowRecHitShashlik = cms.EDProducer("PFRecHitProducer",
+particleFlowRecHitEK = cms.EDProducer("PFRecHitProducer",
     navigator = cms.PSet(
         name = cms.string("PFRecHitShashlikNavigator"),
         barrel = cms.PSet( ),
