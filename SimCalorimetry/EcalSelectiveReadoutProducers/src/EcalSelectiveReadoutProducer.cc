@@ -24,10 +24,13 @@ EcalSelectiveReadoutProducer::EcalSelectiveReadoutProducer(const edm::ParameterS
   digiProducer_ = params.getParameter<string>("digiProducer");
   ebdigiCollection_ = params.getParameter<std::string>("EBdigiCollection");
   eedigiCollection_ = params.getParameter<std::string>("EEdigiCollection");
+  ekdigiCollection_ = params.getParameter<edm::InputTag>("EKdigiCollection");
   ebSRPdigiCollection_ = params.getParameter<std::string>("EBSRPdigiCollection");
   eeSRPdigiCollection_ = params.getParameter<std::string>("EESRPdigiCollection");
+  ekSRPdigiCollection_ = params.getParameter<std::string>("EKSRPdigiCollection");
   ebSrFlagCollection_ = params.getParameter<std::string>("EBSrFlagCollection");
   eeSrFlagCollection_ = params.getParameter<std::string>("EESrFlagCollection");
+  ekSrFlagCollection_ = params.getParameter<std::string>("EKSrFlagCollection");
   trigPrimProducer_ = params.getParameter<string>("trigPrimProducer");
   trigPrimCollection_ = params.getParameter<string>("trigPrimCollection");
   trigPrimBypass_ = params.getParameter<bool>("trigPrimBypass");
@@ -56,11 +59,13 @@ EcalSelectiveReadoutProducer::EcalSelectiveReadoutProducer(const edm::ParameterS
   if(produceDigis_){
     produces<EBDigiCollection>(ebSRPdigiCollection_);
     produces<EEDigiCollection>(eeSRPdigiCollection_);
+    produces<EKDigiCollection>(ekSRPdigiCollection_);
   }
 
   if (writeSrFlags_) {
     produces<EBSrFlagCollection>(ebSrFlagCollection_);
     produces<EESrFlagCollection>(eeSrFlagCollection_);
+    produces<EKSrFlagCollection>(ekSrFlagCollection_);
   }
 
   theGeometry = 0;
@@ -93,26 +98,34 @@ EcalSelectiveReadoutProducer::produce(edm::Event& event, const edm::EventSetup& 
   //gets the digis from the events:
   EBDigiCollection dummyEbDigiColl;
   EEDigiCollection dummyEeDigiColl;
+  EKDigiCollection dummyEkDigiColl;
 
   const EBDigiCollection* ebDigis = produceDigis_?getEBDigis(event)
     :&dummyEbDigiColl;
   const EEDigiCollection* eeDigis = produceDigis_?getEEDigis(event)
     :&dummyEeDigiColl;
+  const EKDigiCollection* ekDigis = produceDigis_?getEKDigis(event)
+    :&dummyEkDigiColl;
+
 
   //runs the selective readout algorithm:
   auto_ptr<EBDigiCollection> selectedEBDigis;
   auto_ptr<EEDigiCollection> selectedEEDigis;
+  auto_ptr<EKDigiCollection> selectedEKDigis;
   auto_ptr<EBSrFlagCollection> ebSrFlags;
   auto_ptr<EESrFlagCollection> eeSrFlags;
+  auto_ptr<EKSrFlagCollection> ekSrFlags;
 
   if(produceDigis_){
     selectedEBDigis = auto_ptr<EBDigiCollection>(new EBDigiCollection);
     selectedEEDigis = auto_ptr<EEDigiCollection>(new EEDigiCollection);
+    selectedEKDigis = auto_ptr<EKDigiCollection>(new EKDigiCollection);
   }
 
   if(writeSrFlags_){
     ebSrFlags = auto_ptr<EBSrFlagCollection>(new EBSrFlagCollection);
     eeSrFlags = auto_ptr<EESrFlagCollection>(new EESrFlagCollection);
+    ekSrFlags = auto_ptr<EKSrFlagCollection>(new EKSrFlagCollection);
   }
 
   if(suppressor_.get() == 0){
@@ -128,9 +141,9 @@ EcalSelectiveReadoutProducer::produce(edm::Event& event, const edm::EventSetup& 
     checkElecMap(eventSetup);
   }
   
-  suppressor_->run(eventSetup, *trigPrims, *ebDigis, *eeDigis,
-		   selectedEBDigis.get(), selectedEEDigis.get(),
-		   ebSrFlags.get(), eeSrFlags.get());
+  suppressor_->run(eventSetup, *trigPrims, *ebDigis, *eeDigis, *ekDigis,
+		   selectedEBDigis.get(), selectedEEDigis.get(), selectedEKDigis.get(),
+		   ebSrFlags.get(), eeSrFlags.get(), ekSrFlags.get());
 
   static int iEvent = 1;
   if(dumpFlags_>=iEvent){
@@ -157,12 +170,14 @@ EcalSelectiveReadoutProducer::produce(edm::Event& event, const edm::EventSetup& 
     //puts the selected digis into the event:
     event.put(selectedEBDigis, ebSRPdigiCollection_);
     event.put(selectedEEDigis, eeSRPdigiCollection_);
+    event.put(selectedEKDigis, ekSRPdigiCollection_);
   }
 
   //puts the SR flags into the event:
   if(writeSrFlags_) {
     event.put(ebSrFlags, ebSrFlagCollection_);
     event.put(eeSrFlags, eeSrFlagCollection_);
+    event.put(ekSrFlags, ekSrFlagCollection_);
   }
 }
 
@@ -193,6 +208,23 @@ EcalSelectiveReadoutProducer::getEEDigis(edm::Event& event) const
   static bool firstCall = true;
   if(firstCall){
     checkWeights(event, hEEDigis.id());
+    firstCall = false;
+  }
+  return result;
+}
+
+
+const EKDigiCollection*
+EcalSelectiveReadoutProducer::getEKDigis(edm::Event& event) const
+{
+  edm::Handle<EKDigiCollection> hEKDigis;
+  event.getByLabel(ekdigiCollection_, hEKDigis);
+  //product() method is called before id() in order to get an exception
+  //if the handle is not available (check not done by id() method).
+  const EKDigiCollection* result = hEKDigis.product();
+  static bool firstCall = true;
+  if(firstCall){
+    checkWeights(event, hEKDigis.id());
     firstCall = false;
   }
   return result;

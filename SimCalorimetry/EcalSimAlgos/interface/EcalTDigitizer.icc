@@ -49,6 +49,9 @@ EcalTDigitizer<Traits>::run( DigiCollection&          output   )
    for( unsigned int i ( 0 ) ; i != ssize ; ++i )
    {
       EcalSamples& analogSignal ( *static_cast<EcalSamples*>( (*m_hitResponse)[ i ]) ) ;
+	if(analogSignal.id()==DetId())
+	     throw cms::Exception("EcalTDigitzer") << "detId is null ";
+
       if( m_addNoise              ||    // digitize if real or adding noise
 	  !analogSignal.zero()       )
       {

@@ -22,7 +22,7 @@ public:
    */
   EcalSelectiveReadoutSuppressor(const edm::ParameterSet & params, const EcalSRSettings* settings);
   
-  enum {BARREL, ENDCAP};
+  enum {BARREL, ENDCAP, SHASHLIK};
 
   /** Gets number of weights supported by the zero suppression filter
    * @return number of weights
@@ -54,7 +54,8 @@ public:
   void run(const edm::EventSetup& eventSetup,
 	   const EcalTrigPrimDigiCollection & trigPrims,
            EBDigiCollection & barrelDigis,
-           EEDigiCollection & endcapDigis);
+           EEDigiCollection & endcapDigis,
+           EKDigiCollection & shashlikDigis);
 
   /** Runs the selective readout (SR) algorithm.
    * @param eventSetup event conditions
@@ -74,10 +75,13 @@ public:
 	   const EcalTrigPrimDigiCollection & trigPrims,
            const EBDigiCollection & barrelDigis,
            const EEDigiCollection & endcapDigis,
+           const EKDigiCollection & shashlikDigis,
            EBDigiCollection* selectedBarrelDigis,
            EEDigiCollection* selectedEndcapDigis,
+           EKDigiCollection* selectedShashlikDigis,
 	   EBSrFlagCollection* ebSrFlags,
-	   EESrFlagCollection* eeSrFlags);
+	   EESrFlagCollection* eeSrFlags,
+	   EKSrFlagCollection* ekSrFlags);
 
   /** For debugging purposes.
    */
@@ -180,7 +184,8 @@ public:
    */
   void setTtFlags(const edm::EventSetup& eventSetup,
 		  const EBDigiCollection& ebDigis,
-		  const EEDigiCollection& eeDigis);
+		  const EEDigiCollection& eeDigis,
+		  const EKDigiCollection& ekDigis);
 
   /** Help function to set the srFlags field.
    * @param trigPrim the trigger primitive digi collection
@@ -257,16 +262,16 @@ public:
   /** Zero suppresion threshold for the ECAL expressed in ebThrUnit and
    * eeThrUnit. Set to numeric_limits<int>::min() for FULL READOUT and
    * to numeric_limits<int>::max() for SUPPRESS.
-   * First index: 0 for barrel, 1 for endcap
+   * First index: 0 for barrel, 1 for endcap, 2 for shashlik
    * 2nd index: channel interest (see EcalSelectiveReadout::towerInterest_t
    */
-  int zsThreshold[2][8];
+  int zsThreshold[3][8];
 
   /** Internal unit for Zero Suppression threshold (1/4th ADC count) used by
    * the FIR.
-   * Index: 0 for barrel, 1 for endcap
+   * Index: 0 for barrel, 1 for endcap, 2 for shashlik
    */
-  double thrUnit[2];
+  double thrUnit[3];
 
   /** Switch for trigger primitive simulation module bypass debug mode.
    */
@@ -308,11 +313,11 @@ public:
 
   /** Maps RU interest flag (low interest, single neighbour, center) to
    * Selective readout action flag (type of readout).
-   * 1st index: 0 for barrel, 1 for endcap
+   * 1st index: 0 for barrel, 1 for endcap, 2 for shashlik
    * 2nd index: RU interest (low, single, neighbour, center,
    *                         forced low, forced single...)
    */
-  int srFlags[2][8];
+  int srFlags[3][8];
 
   /** Default TTF to substitute if absent from the trigger primitive collection
    */

@@ -21,7 +21,7 @@
 #include "CLHEP/Units/GlobalSystemOfUnits.h" 
 #include <iostream>
 
-
+//#define DEBUG
 
 EcalHitResponse::EcalHitResponse( const CaloVSimParameterMap* parameterMap ,
 				  const CaloVShape*           shape         ) :
@@ -207,6 +207,9 @@ void
 EcalHitResponse::putAnalogSignal( const PCaloHit& hit )
 {
    const DetId detId ( hit.id() ) ;
+#ifdef DEBUG
+   std::cerr << "[putAnalogSignal] subdet = " << detId.subdetId() << std::endl;
+#endif
 
    const CaloSimParameters* parameters ( params( detId ) ) ;
 
@@ -226,7 +229,6 @@ EcalHitResponse::putAnalogSignal( const PCaloHit& hit )
 			  - BUNCHSPACE*( parameters->binOfMaximum()
 					 - m_phaseShift             ) ) ;
    double binTime ( tzero ) ;
-
    EcalSamples& result ( *findSignal( detId ) ) ;
 
    const unsigned int rsize ( result.size() ) ;
@@ -266,9 +268,8 @@ EcalHitResponse::analogSignalAmplitude( const DetId& detId, float energy ) const
    if(m_useLCcorrection == true && detId.subdetId() != 3) {
      lasercalib = findLaserConstant(detId);
    }
-
+   
    double npe ( energy/lasercalib*parameters.simHitToPhotoelectrons( detId ) ) ;
-
    // do we need to doPoisson statistics for the photoelectrons?
    if( parameters.doPhotostatistics() ) npe = ranPois()->fire( npe ) ;
 
@@ -280,9 +281,12 @@ EcalHitResponse::analogSignalAmplitude( const DetId& detId, float energy ) const
 double 
 EcalHitResponse::timeOfFlight( const DetId& detId ) const 
 {
-   const CaloCellGeometry* cellGeometry ( geometry()->getGeometry( detId ) ) ;
-   assert( 0 != cellGeometry ) ;
-   return cellGeometry->getPosition().mag()*cm/c_light ; // Units of c_light: mm/ns
+#ifdef DEBUG
+  std::cerr << "[timeOfFlight] " << detId.rawId() << "\t" << detId.subdetId() << std::endl;
+#endif
+  const CaloCellGeometry* cellGeometry ( geometry()->getGeometry( detId ) ) ;
+  assert( 0 != cellGeometry ) ;
+  return cellGeometry->getPosition().mag()*cm/c_light ; // Units of c_light: mm/ns
 }
 
 void 

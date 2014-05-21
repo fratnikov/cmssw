@@ -39,15 +39,19 @@ private:
 
   double glbBarrelThreshold_;
   double glbEndcapThreshold_;
+  double glbShashlikThreshold_;
   
   std::string digiProducer_; // name of module/plugin/producer making digis
   std::string EBdigiCollection_; // secondary name given to collection of digis
   std::string EEdigiCollection_; // secondary name given to collection of digis
+  std::string EKdigiCollection_; // secondary name given to collection of digis
   std::string EBZSdigiCollection_; // secondary name given to collection of digis
   std::string EEZSdigiCollection_; // secondary name given to collection of digis
+  std::string EKZSdigiCollection_; // secondary name given to collection of digis
 
   EcalZeroSuppressor<EBDataFrame> theBarrelZeroSuppressor_;
   EcalZeroSuppressor<EEDataFrame> theEndcapZeroSuppressor_;
+  EcalZeroSuppressor<EKDataFrame> theShashlikZeroSuppressor_;
  
 };
 

@@ -75,6 +75,9 @@ private:
   const EEDigiCollection*
   getEEDigis(edm::Event& event) const;
 
+  const EKDigiCollection*
+  getEKDigis(edm::Event& event) const;
+
   const EcalTrigPrimDigiCollection*
   getTrigPrims(edm::Event& event) const;
 
@@ -105,10 +108,13 @@ private:
   std::string digiProducer_; // name of module/plugin/producer making digis
   std::string ebdigiCollection_; // secondary name given to collection of input digis
   std::string eedigiCollection_; // secondary name given to collection of input digis
+  edm::InputTag ekdigiCollection_; // InputTag to collection of input digis
   std::string ebSRPdigiCollection_; // secondary name given to collection of suppressed digis
   std::string eeSRPdigiCollection_; // secondary name given to collection of suppressed digis
+  std::string ekSRPdigiCollection_; // secondary name given to collection of suppressed digis
   std::string ebSrFlagCollection_; // secondary name given to collection of SR flag digis
   std::string eeSrFlagCollection_; // secondary name given to collection of SR flag digis
+  std::string ekSrFlagCollection_; // secondary name given to collection of SR flag digis
   std::string trigPrimProducer_; // name of module/plugin/producer making triggere primitives
   std::string trigPrimCollection_; // name of module/plugin/producer making triggere primitives
 
