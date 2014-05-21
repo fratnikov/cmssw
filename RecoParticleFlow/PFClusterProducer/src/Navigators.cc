@@ -138,8 +138,7 @@ public:
 typedef PFRecHitDualNavigator<PFLayer::ECAL_BARREL,
 			      PFRecHitEcalBarrelNavigator,
 			      PFLayer::ECAL_ENDCAP,
-			      PFRecHitShashlikNavigator> PFRecHitEBEKNavigator;
-
+			    PFRecHitShashlikNavigator> PFRecHitEBEKNavigator;
 
 EDM_REGISTER_PLUGINFACTORY(PFRecHitNavigationFactory, "PFRecHitNavigationFactory");
 
