@@ -22,7 +22,7 @@ public:
   enum HGCNumberingParameters { HGCCellSize };
 
   HGCNumberingScheme(const DDCompactView & cpv, std::string& name, bool check,
-		     int verbose);
+		     int verbose = 0);
 
   virtual ~HGCNumberingScheme();
 
