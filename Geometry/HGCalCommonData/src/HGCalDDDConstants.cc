@@ -12,7 +12,8 @@
 #include "CLHEP/Units/GlobalSystemOfUnits.h"
 
 //#define DebugLog
-
+//bool FRDebug = true;
+bool FRDebug = false;
 const double k_ScaleFromDDD = 0.1;
 
 HGCalDDDConstants::HGCalDDDConstants(const DDCompactView& cpv,
@@ -47,31 +48,55 @@ std::pair<int,int> HGCalDDDConstants::assignCell(float x, float y, int lay,
     tl   =  modules_[i].tl;
     alpha=  modules_[i].alpha;
   }
-  return assignCell(x, y, h, bl, tl, alpha, index.second);
+  std::pair<int,int> result = assignCell(x, y, h, bl, tl, alpha, index.second);
+  if (FRDebug) std::cout << "HGCalDDDConstants::assignCell("<<x<<','<<y<<','<< h<<','<< bl<<','<< tl<<','<< alpha<<','<< index.second<<" -> (" <<result.first<<','<<result.second<<')'<<std::endl;
+  return result;
 }
   
 std::pair<int,int> HGCalDDDConstants::assignCell(float x, float y, float h, 
 						 float bl,float tl,float alpha,
 						 float cellSize) const {
-
+  std::pair<int,int> result (-1, -1);
+  if (FRDebug) std::cout <<"HGCalDDDConstants::assignCell-> "<<x<<'/'<<y<<'/'<<h<<'/'<<bl<<'/'<<tl<<'/'<<alpha<<'/'<<cellSize<<std::endl;
   float a     = (alpha==0) ? (2*h/(tl-bl)) : (h/(tl-bl));
   float b     = 2*h*bl/(tl-bl);
   float x0(x);
   int phiSector = (x0 > 0) ? 1 : 0;
-  if      (alpha < 0) {x0 -= 0.5*(tl+bl); phiSector = 0;}
-  else if (alpha > 0) {x0 += 0.5*(tl+bl); phiSector = 1;}
-
-  int kx    = floor(fabs(x0)/cellSize);
-  int ky    = floor((y+h)/cellSize);
-  int icell(kx);
-  for (int iky=0; iky<ky; ++iky) {
-    icell += floor((iky*cellSize+b)/(a*cellSize));
+  if      (alpha < 0) {
+    x0 = 0.5*(tl+bl) - x0; // offset to edge, reverse direction
+    phiSector = 0;
   }
-  return std::pair<int,int>(phiSector,icell);
+  else if (alpha > 0) {
+    x0 += 0.5*(tl+bl); // offset to edge
+    phiSector = 1;
+  }
+  if (FRDebug) std::cout <<"HGCalDDDConstants::assignCell-> "<<x<<"+="<<0.5*(tl+bl)<<"->"<<x0<<std::endl;
+  if (alpha == 0 || x0 >= 0) { // inside tilted plane
+
+    int kx    = floor(fabs(x0)/cellSize);
+    int ky    = floor((y+h)/cellSize);
+    if (FRDebug) std::cout << ky<<'='<<"floor(("<<y<<'+'<<h<<")/"<<cellSize<<')'<<std::endl;
+    if (FRDebug) std::cout << "HGCalDDDConstants::assignCell-> kx:ky" << kx<<':'<<ky<<", a/b:"<<a<<'/'<<b<< std::endl;
+    int icell(0);
+    int iky = 0;
+    for (; iky<ky; ++iky) {
+      icell += floor((iky*cellSize+b)/(a*cellSize));
+      if (FRDebug) std::cout << "HGCalDDDConstants::assignCell->" << iky << ": +"<< floor((iky*cellSize+b)/(a*cellSize)) << "->"<<icell << std::endl;
+    }
+    int cellsInRow = floor((iky*cellSize+b)/(a*cellSize));
+    if (kx < cellsInRow) { // beyond detector
+      icell += kx;
+      if (FRDebug) std::cout <<"HGCalDDDConstants::assignCell-> return ("<<phiSector<<','<<icell<<')'<<std::endl;
+      result = std::pair<int,int>(phiSector,icell);
+    }
+  }
+  if (FRDebug) std::cout <<"HGCalDDDConstants::assignCell-> return ("<<result.first<<','<<result.second<<')'<<std::endl;
+  return result;
 }
 
 std::pair<int,int> HGCalDDDConstants::findCell(int cell, int lay, int subSec,
 					       bool reco) const {
+//   std::cout<<"HGCalDDDConstants::findCell-> "<<cell<<'/'<<lay<<'/'<< subSec<<'/'<< reco<<std::endl;
 
   std::pair<int,float> index = getIndex(lay, reco);
   int i = index.first;
@@ -99,14 +124,19 @@ std::pair<int,int> HGCalDDDConstants::findCell(int cell, float h, float bl,
   float a     = (alpha==0) ? (2*h/(tl-bl)) : (h/(tl-bl));
   float b     = 2*h*bl/(tl-bl);
   int   kymax = floor((2*h)/cellSize);
+   if (FRDebug) std::cout <<"HGCalDDDConstants::findCell-> cell/h/bl/tl/alpha/cellSize/a/b/kymax: "
+ 	    << cell<<'/'<<h<<'/'<<bl<<'/'<<tl<<'/'<<alpha<<'/'<<cellSize<<'/'<<a<<'/'<<b<<'/'<<kymax<<std::endl;
   int   ky(0), testCell(0);
   for (int iky=0; iky<kymax; ++iky) {
     int deltay(floor((iky*cellSize+b)/(a*cellSize)));
-    if (testCell+deltay >= cell) break;
+     if (FRDebug) std::cout<<"HGCalDDDConstants::findCell-> a/b/kymax/iky/tc/delta/tcnew: "
+ 	     <<iky<<'/'<<testCell<<'/'<<deltay<<'/'<<testCell+deltay<<"  "<<cell<<std::endl;
+    if (testCell+deltay > cell) break;
     testCell += deltay;
     ky++;
   }
   int kx = (cell-testCell);
+   if (FRDebug) std::cout <<"HGCalDDDConstants::findCell->return ("<<kx<<','<<ky<<")"<<std::endl;
   return std::pair<int,int>(kx,ky);
 }
 
@@ -131,7 +161,9 @@ std::pair<float,float> HGCalDDDConstants::locateCell(int cell, int lay,
   std::pair<int,float> index = getIndex(lay, reco);
   int i = index.first;
   if (i < 0) return std::pair<float,float>(999999.,999999.);
+  //  std::cout<<"HGCalDDDConstants::locateCell-> before findCell(cell, lay, subSec, reco)"<<std::endl;
   std::pair<int,int> kxy = findCell(cell, lay, subSec, reco);
+  //  std::cout<<"HGCalDDDConstants::locateCell-> kxy: " << kxy.first<<':'<<kxy.second<<" cell:"<<index.second<<std::endl;
   float alpha, h, bl, tl;
   if (reco) {
     h    =  moduler_[i].h;
@@ -147,10 +179,10 @@ std::pair<float,float> HGCalDDDConstants::locateCell(int cell, int lay,
   }
   float cellSize = index.second;
   float x        = (kxy.first+0.5)*cellSize;
-  if      (alpha < 0) x -= 0.5*(tl+bl);
-  else if (alpha > 0) x -= 0.5*(tl+bl);
-  if (subSec != 1) x = -x;
+  if      (alpha != 0) x -= 0.5*(tl+bl);
+  if (subSec <= 0) x = -x;
   float y        = ((kxy.second+0.5)*cellSize-h);
+  if (FRDebug) std::cout<<"HGCalDDDConstants::locateCell->"<<cell<<'/'<<lay <<'/'<<subSec <<'/'<<reco<<" -> "<<kxy.first<<'/'<< kxy.second<<'/'<< h<<'/'<< bl<<'/'<< tl<<'/'<< alpha<<" -> "<<x<<'/'<< y<<std::endl;
   return std::pair<float,float>(x,y);
 }
 
@@ -300,30 +332,24 @@ std::vector<int> HGCalDDDConstants::numberCells(float h, float bl,
 
 std::pair<int,int> HGCalDDDConstants::simToReco(int cell, int lay, 
 						bool half) const {
-
+  if (FRDebug) std::cout<<"HGCalDDDConstants::simToReco-> begin: "<<cell<<'/'<<lay<<'/'<<half<<std::endl;
   std::pair<int,float> index = getIndex(lay, false);
   int i = index.first;
-  if (i < 0) return std::pair<int,int>(-1,-1);
-  float h  = modules_[i].h;
-  float bl = modules_[i].bl;
-  float tl = modules_[i].tl;
-  float cellSize = cellFactor_[i]*index.second;
-  std::pair<int,int> kxy = findCell(cell, h, bl, tl, modules_[i].alpha,
-				    index.second);
   int depth   = layerGroup_[i];
-  int kx      = kxy.first/cellFactor_[i];
-  int ky      = kxy.second/cellFactor_[i];
-  float a     = (half) ? (h/(tl-bl)) : (2*h/(tl-bl));
-  float b     = 2*h*bl/(tl-bl);
-  for (int iky=0; iky<ky; ++iky)
-    kx += floor((iky*cellSize+b)/(a*cellSize));
-
+ if (i < 0 || depth < 0) return std::pair<int,int>(-1,-1);
+  int subsection = modules_[i].alpha >= 0 ? 1 : 0;
+  std::pair<float,float> xy = locateCell(cell, lay, subsection, false);
+  std::pair<int,int> iCell = assignCell (xy.first*k_ScaleFromDDD, xy.second*k_ScaleFromDDD, depth, subsection, true);
+  int recoCell = iCell.second;
 #ifdef DebugLog
   std::cout << "simToReco: input " << cell << ":" << lay << ":" << half
-	    << " kxy " << kxy.first << ":" << kxy.second << " output "
-	    << kx << ":" << depth << std::endl;
+	    << " depth " << depth
+	    << " xy " << xy.first << ":" << xy.second << " output "
+	    << " iCell " << iCell.first << ":" << iCell.second << " output "
+	    << recoCell << ":" << depth << std::endl;
 #endif
-  return std::pair<int,int>(kx,depth);
+  if (FRDebug) std::cout<<"HGCalDDDConstants::simToReco-> returns ("<<recoCell<<','<<depth<<')'<<std::endl;
+ return std::pair<int, int> (recoCell, depth);
 }
 
 void HGCalDDDConstants::initialize(const DDCompactView& cpv, std::string name){
@@ -431,29 +457,52 @@ void HGCalDDDConstants::loadGeometry(const DDFilteredView& _fv,
   }
 #endif
   int depth(0);
-  for (unsigned int i=0; i<layer_.size(); ++i) {
-    bool first(true);
+  for (unsigned int i=0; i<unsigned (*std::max_element (layerGroup_.begin(), layerGroup_.end())); ++i) {
+    int refLayer = -1;
     float dz(0);
     for (unsigned int k=0; k<layerGroup_.size(); ++k) {
       if (layerGroup_[k] == (int)(i+1)) {
-	if (first) {
+	if (refLayer < 0) {
 	  depth_.push_back(i+1);
 	  depthIndex.push_back(depth);
 	  depth++;
+	  refLayer = k;
 	  moduler_.push_back(modules_[k]);
-	  moduler_.back().lay = depth;
-	  moduler_.back().bl *= k_ScaleFromDDD;
-	  moduler_.back().tl *= k_ScaleFromDDD;
-	  moduler_.back().h  *= k_ScaleFromDDD;
-	  moduler_.back().dz *= k_ScaleFromDDD;
-	  moduler_.back().cellSize *= (k_ScaleFromDDD*cellFactor_[k]);
 	  dz    = moduler_.back().dz;
-	  first = false;
-	} else {
-	  dz   += (k_ScaleFromDDD*modules_[k].dz);
-	  moduler_.back().dz = dz;
+	}
+	else {
+	  if (fabs (modules_[k].cellSize - modules_[refLayer].cellSize) > 1.e-5 ||
+	      fabs (fabs(modules_[k].alpha) - fabs(modules_[refLayer].alpha)) > 1.e-5) {
+	    edm::LogError("HGCalGeom") << "HGCalDDDConstants " << sdTag << ": mismatch in combned RECO layers: SIM layers  " 
+				       << refLayer << "<->" << k 
+				       << " cell size: " << modules_[refLayer].cellSize << "<->" << modules_[k].cellSize
+				       << " alpha: " << modules_[refLayer].alpha << "<->" << modules_[k].alpha;
+	    throw cms::Exception("DDException") << "HGCalDDDConstants " << sdTag << ": mismatch in combned RECO layers: SIM layers  " 
+						<< refLayer << "<->" << k 
+						<< " cell size: " << modules_[refLayer].cellSize << "<->" << modules_[k].cellSize
+						<< " alpha: " << modules_[refLayer].alpha << "<->" << modules_[k].alpha;
+	  }
+	  if (modules_[k].h > modules_[refLayer].h) { // select bigger one
+	    moduler_.back() = modules_[k];
+	    refLayer = k;
+	  }
+	  dz += modules_[k].dz;
 	}
       }
+    }
+//     std::cout << sdTag << ": RECO layer " << i << " -> ref SIM layer " << refLayer << std::endl;
+    if (refLayer >= 0) {
+      moduler_.back().lay = depth;
+      moduler_.back().bl *= k_ScaleFromDDD;
+      moduler_.back().tl *= k_ScaleFromDDD;
+      moduler_.back().h  *= k_ScaleFromDDD;
+      moduler_.back().dz = dz * k_ScaleFromDDD;
+      moduler_.back().cellSize *= (k_ScaleFromDDD*cellFactor_[refLayer]);
+      moduler_.back().alpha = fabs (moduler_.back().alpha); //reference alpha
+    }
+    else {
+      edm::LogError("HGCalGeom") << "HGCalDDDConstants " << sdTag << ": failed to find SIM layer for RECO layer " << i;
+      throw cms::Exception("DDException") << "HGCalDDDConstants " << sdTag << ": failed to find SIM layer for RECO layer " << i;
     }
   }
 #ifdef DebugLog
@@ -492,16 +541,16 @@ void HGCalDDDConstants::loadGeometry(const DDFilteredView& _fv,
       }
     }
   }
-#ifdef DebugLog
-  std::cout << "Obtained " << trform_.size() << " transformation matrices"
-	    << std::endl;
-  for (unsigned int k=0; k<trform_.size(); ++k) {
-    std::cout << "Matrix[" << k << "] (" << trform_[k].zp << "," 
-	      << trform_[k].sec << "," << trform_[k].subsec << ","
-	      << trform_[k].lay << ") " << " Trnaslation " << trform_[k].h3v 
-	      << " Rotation " << trform_[k].hr;
-  }
-#endif
+// #ifdef DebugLog
+//   std::cout << "Obtained " << trform_.size() << " transformation matrices"
+// 	    << std::endl;
+//   for (unsigned int k=0; k<trform_.size(); ++k) {
+//     std::cout << "Matrix[" << k << "] (" << trform_[k].zp << "," 
+// 	      << trform_[k].sec << "," << trform_[k].subsec << ","
+// 	      << trform_[k].lay << ") " << " Trnaslation " << trform_[k].h3v 
+// 	      << " Rotation " << trform_[k].hr;
+//   }
+// #endif
 }
 
 void HGCalDDDConstants::loadSpecPars(const DDFilteredView& fv) {

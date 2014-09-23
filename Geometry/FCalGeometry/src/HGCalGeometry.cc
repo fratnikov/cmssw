@@ -100,13 +100,15 @@ GlobalPoint HGCalGeometry::getPosition( const DetId& id ) const {
   unsigned int cellIndex =  indexFor(id);
   if (cellIndex <  m_cellVec.size()) {
     HGCalTopology::DecodedDetId id_ = topology().decode(id);
+    //    std::cout<<"HGCalGeometry::getPosition->before locateCell(id_.iCell,id_.iLay,id_.iSubSec,true)"<<std::endl;
     std::pair<float,float> xy = topology().dddConstants().locateCell(id_.iCell,id_.iLay,id_.iSubSec,true);
+    //    std::cout<<"HGCalGeometry::getPosition->after locateCell(id_.iCell,id_.iLay,id_.iSubSec,true)"<<std::endl;
     const HepGeom::Point3D<float> lcoord(xy.first,xy.second,0);
 #ifdef DebugLog
     std::cout << "getPosition:: index " << cellIndex << " Local " << xy.first
 	      << ":" << xy.second << " ID " << id_.iCell << ":" << id_.iLay 
 	      << " Global " << m_cellVec[cellIndex].getPosition(lcoord)
-	      << " Cell" << m_cellVec[cellIndex];
+	      << " Cell: " << m_cellVec[cellIndex];
 #endif
     return m_cellVec[cellIndex].getPosition(lcoord);
   } 
@@ -148,10 +150,9 @@ DetId HGCalGeometry::getClosestCell( const GlobalPoint& r ) const {
 	      << ":" << id_.iLay << ":" << id_.iSec << ":" << id_.iSubSec
 	      << ":" << id_.iCell << " Cell " << m_cellVec[cellIndex];
 #endif
-    return topology().encode(id_);
-  } else {
-    return DetId();
+    if (id_.iCell >= 0) return topology().encode(id_);
   }
+  return DetId();
 }
 
 HGCalGeometry::DetIdSet HGCalGeometry::getCells( const GlobalPoint& r, double dR ) const {

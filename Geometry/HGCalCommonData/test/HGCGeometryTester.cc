@@ -68,6 +68,8 @@ public:
     {
       std::string histName ("faultPoints"); histName += fSuffix;
       faultPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
+      (histName = ("invalidPoints")) += fSuffix;
+      invalidPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
       (histName = ("allPoints")) += fSuffix;
       allPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
       (histName = ("faultPointsWeighted")) += fSuffix;
@@ -87,13 +89,19 @@ public:
       allPoints.Fill (point[0], point[1]);
     }
 
+    void fillInvalid (const double* point) {
+      invalidPoints.Fill (point[0], point[1]);
+    }
+
     void write () {
+      invalidPoints.Write();
       faultPoints.Write();
       allPoints.Write();
       faultPointsWeighted.Write();
       faultDistance.Write();
     }
     
+    TH2D invalidPoints;
     TH2D faultPoints;
     TH2D allPoints;
     TH2D faultPointsWeighted;
@@ -106,6 +114,8 @@ public:
     {
       std::string histName ("faultPoints"); histName += fSuffix;
       faultPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
+      (histName = ("invalidPoints")) += fSuffix;
+      invalidPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
       (histName = ("allPoints")) += fSuffix;
       allPoints = TH2D (histName.c_str(), histName.c_str(), 40, -1, 1, 40, -1,1);
       (histName = ("faultPointsWeighted")) += fSuffix;
@@ -131,6 +141,19 @@ public:
       allPoints.Fill (point[0], point[1]);
     }
 
+    void fillInvalid (const double* point, int layer) {
+      if (layer >= int(layerHists.size())) {
+	layerHists.resize (layer+1, 0);
+      }
+      if (layerHists[layer] == 0) {
+	char layerSuffix [1024];
+	sprintf (layerSuffix, "%s_%d", suffix.c_str(), layer);
+	layerHists[layer] = new LayerHists (layerSuffix);
+      }
+      layerHists[layer]->fillInvalid (point);
+      invalidPoints.Fill (point[0], point[1]);
+    }
+
     void fillFault (double dr, const double* point, int layer) {
       if (layer >= int(layerHists.size())) {
 	layerHists.resize (layer+1, 0);
@@ -150,6 +173,7 @@ public:
     for (size_t i = 0; i < layerHists.size(); ++i) {
       if (layerHists[i]) layerHists[i]->write();
     }
+    invalidPoints.Write();
     faultPoints.Write();
     allPoints.Write();
     faultPointsWeighted.Write();
@@ -157,6 +181,7 @@ public:
   }
     
 
+    TH2D invalidPoints;
     TH2D faultPoints;
     TH2D allPoints;
     TH2D faultPointsWeighted;
@@ -195,6 +220,19 @@ public:
       subdetHists[index] = new SubdetHists (std::string (subDetSuffix[index]));
     }
     subdetHists[index]->fillAll (point, layer);
+  }
+
+  void fillInvalid (const double* point, ForwardSubdetector subdet, int layer) {
+    int index = (subdet == HGCEE) ? 0 :
+      (subdet == HGCHEF) ? 1 :
+      (subdet == HGCHEB) ? 2 : -1;
+    if (index < 0) return;
+    if (int(subdetHists.size()) <= index) subdetHists.resize (index+1, 0);
+    if (subdetHists[index] == 0) {
+      const char* subDetSuffix [] = {"_EE", "_HEF", "_HEB"};
+      subdetHists[index] = new SubdetHists (std::string (subDetSuffix[index]));
+    }
+    subdetHists[index]->fillInvalid (point, layer);
   }
 
   void write () {
@@ -269,6 +307,63 @@ void HGCGeometryTester::analyze( const edm::Event& iEvent,
   numberingScheme[size_t(ForwardSubdetector::HGCHEB)] = 
     new HGCNumberingScheme (*pDD, nameX, true);
   iSetup.get<IdealGeometryRecord>().get(nameX, geometry[size_t(ForwardSubdetector::HGCHEB)]);
+
+  // process test point
+  {
+    ForwardSubdetector subdet = ForwardSubdetector::HGCHEB;
+    int lay=3;
+    int sect = 18;
+    int izz = -1;
+    GlobalPoint rPointG (-162.058,-29.3014,-449.443);
+    G4ThreeVector localPG (-14.6133,11.6834,0.193194); localPG /= k_ScaleFromDDDtoGeant;
+    //    G4ThreeVector localPG (-14.9549/k_ScaleFromDDDtoGeant,45.7397/k_ScaleFromDDDtoGeant,0.0841951/k_ScaleFromDDDtoGeant);
+    uint32_t sid = numberingScheme[size_t (subdet)]->
+		      getUnitID(subdet, lay, sect, izz ,
+				localPG);  // must be const G4ThreeVector&
+    if (!sid) {
+      std::cout<<"can not convert location to SimId"<<std::endl;
+    }
+    else {
+      HGCalDetId simId (sid);
+      std::cout << "Point " << localPG.x()<<':'<<localPG.y()<<':'<<localPG.z()
+		<< " HGCalDetId-> "<<simId << std::endl;
+      
+      const HGCalTopology &topo=geometry[size_t(subdet)]->topology();
+      const HGCalDDDConstants &dddConst=topo.dddConstants();
+      std::pair<int,int> recoLayerCell=dddConst.simToReco(simId.cell(), simId.layer(),topo.detectorType());
+      int recoCell  = recoLayerCell.first;
+      int recoLayer = recoLayerCell.second;
+      std::cout<<"isValid SIMU->"<<dddConst.isValid(lay, sect, simId.cell(), false)<<std::endl;
+      std::cout<<"isValid RECO->"<<dddConst.isValid(recoLayer, sect, recoCell, true)<<std::endl;
+      if (dddConst.isValid(recoLayer, sect, recoCell, true)) {
+	DetId id( subdet == HGCEE ?
+		  (uint32_t)HGCEEDetId(subdet,simId.zside(),recoLayer,simId.sector(),simId.subsector(),recoCell) :
+		  (uint32_t)HGCHEDetId(subdet,simId.zside(),recoLayer,simId.sector(),simId.subsector(),recoCell) );
+	// Reco Geometry
+	std::cout<<"testGeometry-> before getPosition" << std::endl;
+	GlobalPoint pos = geometry[size_t(subdet)]->getPosition(id);
+	std::cout<<"testGeometry-> before getCorners" << std::endl;
+	HGCalGeometry::CornersVec corners = geometry[size_t(subdet)]->getCorners(id);
+	std::cout<<"testGeometry-> after getCorners" << std::endl;
+	double cellSize = (corners[0]-corners[1]).mag();
+	std::cout << "RecoId: " << HGCHEDetId (id) << " cell size: " << cellSize << std::endl;
+	std::cout << "Reco cell geometry center: "<<pos.x()<<':'<<pos.y()<<':'<<pos.z();
+	for (unsigned i = 0; i < 4; ++i) {
+	  std::cout << " "<<i<<">"<<corners[i].x()<<':'<<corners[i].y()<<':'<<corners[i].z();
+	}
+	std::cout << std::endl;
+	DetId idClose = geometry[size_t(subdet)]->getClosestCell(rPointG);
+	std::cout << "Closest cell to "<<rPointG.x()<<':'<<rPointG.y()<<':'<<rPointG.z()<<" is "<<std::hex<<idClose.rawId()<<std::dec<<' ' << std::endl;
+ 	if (subdet == HGCEE) {
+ 	  std::cout << HGCEEDetId (idClose) << std::endl;
+ 	}
+ 	else {
+ 	  std::cout << HGCHEDetId (idClose) << std::endl;
+ 	}
+      }
+    }
+    //return;
+  }
 
   //parse the DD for sensitive volumes
   DDExpandedView eview(*pDD);
@@ -359,8 +454,13 @@ void HGCGeometryTester::analyze( const edm::Event& iEvent,
 	  localPos = HepGeom::Point3D<double> (rx,ry,rz);
 	  if (fabs(rx) < drx) {
 	    if (tanAlpha != 0) {
+// 	      std::cout << "dz/dy/x1/x2/tanalpha: " << dz<<'/'<<dy<<'/'<<x1<<'/'<<x2<<'/'<<tanAlpha<<std::endl;
+//  	      std::cout << "rr: "<<rr[0]<<"->"<<0.5*rr[0] + 0.5*(tanAlpha>0?1:-1)*drx/std::max(x1,x2)<<std::endl;
+//  	      std::cout << "rx: "<<rx<<"="<<rr[0]<<"*std::max("<<x1<<','<<x2<<')'
+//  			<< "   "<<rx<<"->"<<rx +ry*tanAlpha<<std::endl;
 	      rr[0] = 0.5*rr[0] + 0.5*(tanAlpha>0?1:-1)*drx/std::max(x1,x2); // compress rndm for HESci
 	      rx += ry * tanAlpha; // offset due to tilt
+	      localPos = HepGeom::Point3D<double> (rx,ry,rz);
 	    }
 	    break;
 	  }
@@ -369,6 +469,7 @@ void HGCGeometryTester::analyze( const edm::Event& iEvent,
 	HepGeom::Point3D<double> rPoint = ht3d * localPos;
 	GlobalPoint rPointG (rPoint.x(),rPoint.y(),rPoint.z());
 	counterAll++;
+	histograms.fillAll (rr, subdet, 0);
 	// convert to ID
  	int iz = rPoint.z() > 0 ? 1 : -1;
 	G4ThreeVector localPosG (localPos.x()/k_ScaleFromDDDtoGeant, 
@@ -377,21 +478,50 @@ void HGCGeometryTester::analyze( const edm::Event& iEvent,
  	HGCalDetId simId (numberingScheme[size_t(subdet)]->
 			  getUnitID(subdet, layer, section, iz, 
 				    localPosG));  // must be const G4ThreeVector&
+	if (!simId) {
+	  //std::cout << "====> getUnitID can not produce point for "<<subdet<<'/'<<layer<<'/'<< section<<'/'<< iz<<'/'<< localPosG<<std::endl;
+	  histograms.fillInvalid (rr, subdet, 0);
+	  continue;
+	}
 	// convert SimId to RecoId
 	const HGCalTopology &topo=geometry[size_t(subdet)]->topology();
 	const HGCalDDDConstants &dddConst=topo.dddConstants();
 	std::pair<int,int> recoLayerCell=dddConst.simToReco(simId.cell(), simId.layer(),topo.detectorType());
 	int recoCell  = recoLayerCell.first;
-	int recoLayer = recoLayerCell.second;
-	if(recoLayer<0) {
-	  //	  std::cout << "====> fail dddConst.simToReco cell:" << simId << " for detector " << int(subdet) << ':' << topo.subDetector() << std::endl;
-	  continue;
+	if (recoCell < 0) {
+	  if (subdet == HGCEE) continue;
+// 	  std::cout << "====> dddConst.simToReco invalid cell:" <<simId.sector()<<'/'<<recoCell<<'/'<<simId << " for detector " << int(subdet) << ':' << topo.subDetector() << std::endl;
+//  	  std::cout << " Detector " << name << "subdet/layer/section/iz: " << subdet<<'/'<<layer<<'/'<<section<<'/'<<iz<<" corners:";
+//  	  HepGeom::Point3D<double> corner = 
+//  	    ht3d * HepGeom::Point3D<double>(-x2+dy*tanAlpha, dy, 0);
+//  	  std::cout << ' ' << corner.x() << ':' << corner.y(); 
+//  	  corner = 
+//  	    ht3d * HepGeom::Point3D<double>(x2+dy*tanAlpha, dy, 0);
+//  	  std::cout << ' ' << corner.x() << ':' << corner.y(); 
+//  	  corner = 
+//  	    ht3d * HepGeom::Point3D<double>(-x1-dy*tanAlpha, -dy, 0);
+//  	  std::cout << ' ' << corner.x() << ':' << corner.y(); 
+//  	  corner = 
+//  	    ht3d * HepGeom::Point3D<double>(x1-dy*tanAlpha, -dy, 0);
+//  	  std::cout << ' ' << corner.x() << ':' << corner.y();
+//  	  std::cout << std::endl;
+//  	  std::cout << "Random point relative: " << rr[0]<<':'<<rr[1]<<':'<<rr[2]<<std::endl; 
+//  	  std::cout << "Random point local: " 
+//  		    <<  localPos.x()<<':'<<localPos.y()<<':'<<localPos.z()
+//  		    << " global: " 
+//  		    << rPoint.x()<<':'<<rPoint.y()<<':'<<rPoint.z()
+//  		    << " HGCalDetId: " << simId
+//  		    << std::endl;
+  
+	  histograms.fillInvalid (rr, subdet, 1);
+	  continue;	
 	}
+	int recoLayer = recoLayerCell.second;
 	histograms.fillAll (rr, subdet, recoLayer);
 
-	if (recoCell != simId.cell()) {
-	  std::cout << "cell change: " << simId.cell() << "->" << recoCell << std::endl;
-	}
+// 	if (recoCell != simId.cell()) {
+// 	  std::cout << "cell change: " << simId.cell() << "->" << recoCell << std::endl;
+// 	}
 	
 	//assign the RECO DetId
 	DetId id( subdet == HGCEE ?
@@ -402,22 +532,26 @@ void HGCGeometryTester::analyze( const edm::Event& iEvent,
 	HGCalGeometry::CornersVec corners = geometry[size_t(subdet)]->getCorners(id);
 	double cellSize = (corners[0]-corners[1]).mag();
 	DetId idClose = geometry[size_t(subdet)]->getClosestCell(rPointG);
-	//	std::cout << "Closest cell to "<<rPoint.x()<<':'<<rPoint.y()<<':'<<rPoint.z()<<" is "<<std::hex<<idClose.rawId()<<std::dec<<' ';
-// 	if (subdet == HGCEE) {
-// 	  std::cout << HGCEEDetId (idClose);
-// 	}
-// 	else {
-// 	  std::cout << HGCHEDetId (idClose);
-// 	}
+	if (idClose.rawId() == 0) {
+	  std::cout << "Can not find closest cell to "<<rPoint.x()<<':'<<rPoint.y()<<':'<<rPoint.z()<<" recoId: ";
+	  if (subdet == HGCEE) {
+	    std::cout << HGCEEDetId (id)<<std::endl;
+	  }
+	  else {
+	    std::cout << HGCHEDetId (id)<<std::endl;
+	  }
+	  histograms.fillInvalid (rr, subdet, 2);
+	  continue;
+	}
 	GlobalPoint posClose = geometry[size_t(subdet)]->getPosition(idClose);
-	double offsetReco = 0.5 * (rPointG-pos).mag() / cellSize;
-	double offsetClose = 0.5 * (rPointG-posClose).mag() / cellSize;
+	double offsetReco = 0.5 * (rPointG-pos).perp() / cellSize;
+	double offsetClose = 0.5 * (rPointG-posClose).perp() / cellSize;
 	if (idClose != id) {
 	  counterFault++;
 	  //	  if (subdet != HGCHEB) {
-	  if (subdet == HGCHEB && (offsetReco - offsetClose) > 8) {
+	  if (fabs (offsetReco - offsetClose) > 1) {
 	  std::cout << "------------------------------------" << std::endl;
-	  std::cout << " Detector " << name << " corners:";
+	  std::cout << " Detector " << name << "subdet/layer/section/iz: " << subdet<<'/'<<layer<<'/'<<section<<'/'<<iz<<" corners:";
 	  HepGeom::Point3D<double> corner = 
 	    ht3d * HepGeom::Point3D<double>(-x2+dy*tanAlpha, dy, 0);
 	  std::cout << ' ' << corner.x() << ':' << corner.y(); 
