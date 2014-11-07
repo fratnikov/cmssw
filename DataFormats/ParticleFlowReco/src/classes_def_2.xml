@@ -59,6 +59,16 @@
 
   <class name="edm::RefVector<std::vector<reco::PFRecHit>,reco::PFRecHit,edm::refhelper::FindUsingAdvance<std::vector<reco::PFRecHit>,reco::PFRecHit> >"/>
 
+<!--      <class name="reco::RecoPFRecHitRefCandidateBase">
+    <field name="p4Polar_" transient="true"/>
+    <field name="p4Cartesian_" transient="true"/>
+    <field name="cachePolarFixed_" transient="true"/>
+    <field name="cacheCartesianFixed_" transient="true"/>
+  </class>
+-->
+  <class name="reco::RecoPFRecHitRefCandidate">
+  </class>
+
   
 
   <class name="reco::PFTrack" ClassVersion="10">
@@ -280,6 +290,19 @@
   <class name="edm::reftobase::RefVectorHolder<reco::RecoPFClusterRefCandidateRefVector>" />
 
   <class name="edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate> > >" />
+
+  <class name="std::vector<reco::RecoPFRecHitRefCandidate>"/>
+  <class name="edm::Wrapper<std::vector<reco::RecoPFRecHitRefCandidate> >"/>
+  <class name="edm::Ref<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> >"/>
+  <class name="edm::RefProd<std::vector<reco::RecoPFRecHitRefCandidate> >"/>
+  <class name="edm::RefVector<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> >"/>
+
+  <class name="edm::reftobase::Holder<reco::Candidate, reco::RecoPFRecHitRefCandidateRef>" />
+  <class name="edm::reftobase::RefHolder<reco::RecoPFRecHitRefCandidateRef>" />
+  <class name="edm::reftobase::VectorHolder<reco::Candidate, reco::RecoPFRecHitRefCandidateRefVector>" />
+  <class name="edm::reftobase::RefVectorHolder<reco::RecoPFRecHitRefCandidateRefVector>" />
+
+  <class name="edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> > >" />
 
 </selection>
 <exclusion>

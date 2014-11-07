@@ -60,6 +60,8 @@
 #include "DataFormats/ParticleFlowReco/interface/PreIdFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFClusterRefCandidate.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFClusterRefCandidateFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidate.h"
+#include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidateFwd.h"
 
 #include <map>
 

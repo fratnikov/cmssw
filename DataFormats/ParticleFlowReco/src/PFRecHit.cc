@@ -4,6 +4,8 @@ using namespace std;
 
 const unsigned    PFRecHit::nCorners_ = 4;
 
+const math::XYZPoint PFRecHit::dummyVtx_(0,0,0);
+
 PFRecHit::PFRecHit() : 
   detId_(0),
   layer_(PFLayer::NONE),

@@ -165,6 +165,40 @@ namespace reco {
       originalRecHit_ = edm::RefToBase<CaloRecHit>(rh);
     }
 
+    /// some classes to make this fit into a template footprint
+    /// for RecoPFClusterRefCandidate so we can make jets and MET
+    /// out of PFClusters.
+    
+    /// dummy charge
+    double charge() const { return 0;}
+
+    /// transverse momentum, massless approximation
+    double pt() const { 
+      return (energy() * sin(position_.theta()));
+    }
+
+    /// angle
+    double theta() const { 
+      return position_.theta();
+    }
+    
+    double eta() const { 
+      return position_.eta();
+    }
+    
+    double phi() const { 
+      return position_.phi();
+    }
+    
+    /// dummy vertex access
+    math::XYZPoint const & vertex() const { 
+      return dummyVtx_;      
+    }
+    double vx() const { return vertex().x(); }
+    double vy() const { return vertex().y(); }
+    double vz() const { return vertex().z(); }    
+
+
   private:
 
     // original rechit
@@ -215,6 +249,8 @@ namespace reco {
 
     /// set position of one of the corners
     void      setCorner( unsigned i, double posx, double posy, double posz );
+
+    static const math::XYZPoint dummyVtx_;
   };
   
 }
