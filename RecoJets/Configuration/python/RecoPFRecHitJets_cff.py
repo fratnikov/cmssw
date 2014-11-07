@@ -50,5 +50,7 @@ ak5PFRecHitJets = cms.EDProducer(
 
 from RecoJets.JetProducers.PFRecHitsForJets_cff import *
 
-recoPFRecHitJets   =cms.Sequence(pfRecHitRefsForJetsHGEE+pfRecHitRefsForJetsHGHEF+pfRecHitRefsForJetsHGHEB+pfRecHitRefsForJets+pfCalibratedRecHitRefsForJets+ak5PFRecHitJets)
+recoPFRecHitJets   =cms.Sequence(pfRecHitRefsForJetsHGEE+pfRecHitRefsForJetsHGHEF+pfRecHitRefsForJetsHGHEB+
+                                 pfRecHitRefsForJetsEB+pfRecHitRefsForJetsHB+pfRecHitRefsForJetsHFEM+pfRecHitRefsForJetsHFHAD+
+                                 pfRecHitRefsForJets+pfCalibratedRecHitRefsForJets+ak5PFRecHitJets)
 

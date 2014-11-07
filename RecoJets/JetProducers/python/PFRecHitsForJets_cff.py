@@ -17,8 +17,29 @@ pfRecHitRefsForJetsHGHEB = cms.EDProducer("PFRecHitRefCandidateProducer",
     particleType = cms.string('gamma')
 )
 
+pfRecHitRefsForJetsHB = cms.EDProducer("PFRecHitRefCandidateProducer",
+    src          = cms.InputTag('particleFlowRecHitHCAL'),
+    particleType = cms.string('gamma')
+)
+
+pfRecHitRefsForJetsEB = cms.EDProducer("PFRecHitRefCandidateProducer",
+    src          = cms.InputTag('particleFlowRecHitECALWithTime'),
+    particleType = cms.string('gamma')
+)
+
+pfRecHitRefsForJetsHFEM = cms.EDProducer("PFRecHitRefCandidateProducer",
+    src          = cms.InputTag('particleFlowRecHitHCAL:HFEM'),
+    particleType = cms.string('gamma')
+)
+
+pfRecHitRefsForJetsHFHAD = cms.EDProducer("PFRecHitRefCandidateProducer",
+    src          = cms.InputTag('particleFlowRecHitHCAL:HFHAD'),
+    particleType = cms.string('gamma')
+)
+
 pfRecHitRefsForJets = cms.EDProducer("PFRecHitRefCandidateMerger",
-    src = cms.VInputTag("pfRecHitRefsForJetsHGEE", "pfRecHitRefsForJetsHGHEF", "pfRecHitRefsForJetsHGHEB")
+    src = cms.VInputTag("pfRecHitRefsForJetsHGEE", "pfRecHitRefsForJetsHGHEF", "pfRecHitRefsForJetsHGHEB",
+                        "pfRecHitRefsForJetsHB", "pfRecHitRefsForJetsEB", "pfRecHitRefsForJetsHFEM", "pfRecHitRefsForJetsHFHAD")
 )
 
 pfCalibratedRecHitRefsForJets = cms.EDProducer("PFRecHitCalibrator",
