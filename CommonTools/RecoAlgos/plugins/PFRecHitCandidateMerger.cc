@@ -1,5 +1,4 @@
-
-#include "CommonTools/RecoAlgos/src/PFRecHitToRefCandidate.h"
+#include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidateFwd.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "CommonTools/UtilAlgos/interface/Merger.h"
 

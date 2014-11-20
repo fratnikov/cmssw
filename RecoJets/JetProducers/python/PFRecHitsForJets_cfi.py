@@ -48,21 +48,21 @@ pfCalibratedRecHitRefsForJets = cms.EDProducer("PFRecHitCalibrator",
         # a = 82.8
         # b = 1e6
         # c = 1e6
-        weights = cms.vdouble([0.080]+[0.62]*9+[0.81]*9+[1.19]*8),
+        weights = cms.vdouble([0]+[0.080]+[0.62]*9+[0.81]*9+[1.19]*8),
         effMip_to_InverseGeV_a = cms.double(82.8),
         effMip_to_InverseGeV_b = cms.double(1e6),
         effMip_to_InverseGeV_c = cms.double(1e6),
         MipValueInGeV = cms.double(55.1*1e-6)
         ),
                                                HGCHEFHadronicEnergyCalibrator = cms.PSet (
-        weights = cms.vdouble([0.0464]+[0.0474]*10+[0.1215]*11),
+        weights = cms.vdouble([0]+[0.0464]+[0.0474]*11),
         effMip_to_InverseGeV_a = cms.double(1.0),
         effMip_to_InverseGeV_b = cms.double(1e6),
         effMip_to_InverseGeV_c = cms.double(1e6),
         MipValueInGeV = cms.double(85.0*1e-6)
         ),
                                                HGCHEBHadronicEnergyCalibrator = cms.PSet (
-        weights = cms.vdouble([0.0464]+[0.0474]*10+[0.1215]*11),
+        weights = cms.vdouble([0]+[0.1215]*12),
         effMip_to_InverseGeV_a = cms.double(1.0),
         effMip_to_InverseGeV_b = cms.double(1e6),
         effMip_to_InverseGeV_c = cms.double(1e6),
