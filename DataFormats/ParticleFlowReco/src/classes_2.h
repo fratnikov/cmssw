@@ -60,6 +60,8 @@
 #include "DataFormats/ParticleFlowReco/interface/PreIdFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFClusterRefCandidate.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFClusterRefCandidateFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidate.h"
+#include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidateFwd.h"
 
 #include <map>
 
@@ -125,6 +127,19 @@ namespace {
     edm::reftobase::RefHolder<reco::RecoPFClusterRefCandidateRef> rbpfr2;
     edm::reftobase::VectorHolder<reco::Candidate, reco::RecoPFClusterRefCandidateRefVector> rbpfr3;
     edm::reftobase::RefVectorHolder<reco::RecoPFClusterRefCandidateRefVector> rbpfr4;
+
+
+    reco::RecoPFRecHitRefCandidateCollection vpfrhr1;
+    edm::Wrapper<reco::RecoPFRecHitRefCandidateCollection> wpfrhr1;
+    edm::Ref<reco::RecoPFRecHitRefCandidateCollection> rpfrhrr1;
+    edm::RefProd<reco::RecoPFRecHitRefCandidateCollection> rpfrhrpr1;
+    edm::RefVector<reco::RecoPFRecHitRefCandidateCollection> rvpfrhrr1;
+
+
+    edm::reftobase::Holder<reco::Candidate, reco::RecoPFRecHitRefCandidateRef> rbpfrhr1;
+    edm::reftobase::RefHolder<reco::RecoPFRecHitRefCandidateRef> rbpfrhr2;
+    edm::reftobase::VectorHolder<reco::Candidate, reco::RecoPFRecHitRefCandidateRefVector> rbpfrhr3;
+    edm::reftobase::RefVectorHolder<reco::RecoPFRecHitRefCandidateRefVector> rbpfrhr4;
 
 
     /* Calibratable bits */
@@ -198,6 +213,8 @@ namespace {
     edm::RefVector<std::vector<reco::PFBlock>, reco::PFBlock, edm::refhelper::FindUsingAdvance< std::vector<reco::PFBlock>, reco::PFBlock> > dummy336;
 
 edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate> > > tpaaapfc2;
+
+edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> > > tpaaapfrh2;
 
 
   };

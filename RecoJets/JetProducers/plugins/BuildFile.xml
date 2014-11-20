@@ -11,5 +11,6 @@
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="CondFormats/JetMETObjects"/>
   <use   name="JetMETCorrections/Objects"/>
+    <use   name="Geometry/FCalGeometry"/>
   <use   name="fastjet"/>
 </library>
