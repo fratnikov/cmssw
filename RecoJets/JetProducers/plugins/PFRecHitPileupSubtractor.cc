@@ -203,6 +203,7 @@ namespace {
       setLayer (layer);
     }
 
+  ostream& operator<< (ostream& out, LayerDetId id) {return out<<int(id.det())<<':'<<id.subdetId()<<':'<<id.layer();}
 
   class PileupDataContainer {
   public:
@@ -212,6 +213,7 @@ namespace {
     void reset ();
     bool layerAvailable (LayerDetId id) const;
     const vector<double>& getEtaBins () const;
+    void dump();
   private:
     vector <double> etaBins;
     map<LayerDetId, vector<double> > container;
@@ -244,9 +246,21 @@ namespace {
   const vector<double>& PileupDataContainer::getEtaBins () const {return etaBins;}
   
   size_t PileupDataContainer::iEta (double eta) const {
-    auto ptr = lower_bound (etaBins.begin(), etaBins.end(), eta);
+    auto ptr = lower_bound (etaBins.begin(), etaBins.end(), fabs(eta));
     if (ptr == etaBins.end()) return etaBins.size()-1;
     return ptr - etaBins.begin();
+  }
+
+  void PileupDataContainer::dump () {
+    cout<<endl<<"PileupDataContainer::dump"<<endl;
+    cout<<"   eta   ";
+    for (auto& eta : etaBins) cout<<"  "<<eta;
+    cout<<endl;
+    for (auto& rec : container) {
+      cout<<rec.first;
+      for (auto& value : rec.second) cout<<"  "<<value;
+      cout<<endl;
+    }
   }
 }
 
@@ -297,6 +311,8 @@ void PFRecHitPileupSubtractor::beginRun (const edm::Run& iRun, const edm::EventS
       }
     }
   }
+    cout<<"PFRecHitPileupSubtractor::beginRun-> DumpSquares"<<endl;
+    fSquares.dump();
 }
 
 void PFRecHitPileupSubtractor::produce (edm::Event& iEvent,const edm::EventSetup& iSetup)
@@ -307,7 +323,6 @@ void PFRecHitPileupSubtractor::produce (edm::Event& iEvent,const edm::EventSetup
   std::auto_ptr<RecoPFRecHitRefCandidateCollection> cleanedHits  (new RecoPFRecHitRefCandidateCollection ());
   // 1 loop fill energies
   PileupDataContainer energies (fSquares.getEtaBins ());
-  PileupDataContainer energies2 (fSquares.getEtaBins ());
   for (auto& inHit : *inputHits) {
     DetId det (inHit.pfRecHit()->detId());
     LayerDetId ldi (det);
@@ -316,6 +331,8 @@ void PFRecHitPileupSubtractor::produce (edm::Event& iEvent,const edm::EventSetup
     double p = inHit.p();
     energies.add (ldi, eta, p);
   }
+   cout<<"PFRecHitPileupSubtractor::produce-> dump energies"<<endl;
+   energies.dump();
   // 2 loop subtract offsets
   for (auto& inHit : *inputHits) {
     RecoPFRecHitRefCandidate outHit (inHit);
@@ -326,6 +343,8 @@ void PFRecHitPileupSubtractor::produce (edm::Event& iEvent,const edm::EventSetup
     double pNew = inHit.p();
     double meanP = square/fSquares.value (ldi, eta)*energies.value (ldi, eta);
     pNew -= meanP;
+    cout<<"PFRecHitPileupSubtractor::produce-> cell:eta "<<ldi<<':'<<eta
+	<<" orig/offset/cleaned: "<<inHit.p()<<'/'<<meanP<<'/'<<pNew<<endl;
     if (pNew > 0) {
       double scale = pNew / inHit.p();
       math::PtEtaPhiMLorentzVector newP4 (scale*inHit.pt(),inHit.eta(),inHit.phi(),0);

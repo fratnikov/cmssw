@@ -70,6 +70,9 @@
   <class name="reco::RecoPFRecHitRefCandidate">
   </class>
 
+  <class name="reco::CaloSuperHit">
+  </class>
+
   
 
   <class name="reco::PFTrack" ClassVersion="10">
@@ -304,6 +307,19 @@
   <class name="edm::reftobase::RefVectorHolder<reco::RecoPFRecHitRefCandidateRefVector>" />
 
   <class name="edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> > >" />
+
+  <class name="std::vector<reco::CaloSuperHit>"/>
+  <class name="edm::Wrapper<std::vector<reco::CaloSuperHit> >"/>
+  <class name="edm::Ref<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit,edm::refhelper::FindUsingAdvance<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit> >"/>
+  <class name="edm::RefProd<std::vector<reco::CaloSuperHit> >"/>
+  <class name="edm::RefVector<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit,edm::refhelper::FindUsingAdvance<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit> >"/>
+
+  <class name="edm::reftobase::Holder<reco::Candidate, reco::CaloSuperHitRef>" />
+  <class name="edm::reftobase::RefHolder<reco::CaloSuperHitRef>" />
+  <class name="edm::reftobase::VectorHolder<reco::Candidate, reco::CaloSuperHitRefVector>" />
+  <class name="edm::reftobase::RefVectorHolder<reco::CaloSuperHitRefVector>" />
+
+  <class name="edm::Wrapper<edm::RefVector<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit,edm::refhelper::FindUsingAdvance<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit> > >" />
 
 </selection>
 <exclusion>

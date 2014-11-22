@@ -62,6 +62,7 @@
 #include "DataFormats/ParticleFlowReco/interface/RecoPFClusterRefCandidateFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidate.h"
 #include "DataFormats/ParticleFlowReco/interface/RecoPFRecHitRefCandidateFwd.h"
+#include "DataFormats/ParticleFlowReco/interface/CaloSuperHitFwd.h"
 
 #include <map>
 
@@ -141,6 +142,18 @@ namespace {
     edm::reftobase::VectorHolder<reco::Candidate, reco::RecoPFRecHitRefCandidateRefVector> rbpfrhr3;
     edm::reftobase::RefVectorHolder<reco::RecoPFRecHitRefCandidateRefVector> rbpfrhr4;
 
+    reco::CaloSuperHitCollection vcshr1;
+    edm::Wrapper<reco::CaloSuperHitCollection> wcshr1;
+    edm::Ref<reco::CaloSuperHitCollection> rcshrr1;
+    edm::RefProd<reco::CaloSuperHitCollection> rcshrpr1;
+    edm::RefVector<reco::CaloSuperHitCollection> rvcshrr1;
+
+
+    edm::reftobase::Holder<reco::Candidate, reco::CaloSuperHitRef> rbcshr1;
+    edm::reftobase::RefHolder<reco::CaloSuperHitRef> rbcshr2;
+    edm::reftobase::VectorHolder<reco::Candidate, reco::CaloSuperHitRefVector> rbcshr3;
+    edm::reftobase::RefVectorHolder<reco::CaloSuperHitRefVector> rbcshr4;
+
 
     /* Calibratable bits */
     pftools::Calibratable dummy50;
@@ -215,6 +228,8 @@ namespace {
 edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFClusterRefCandidate>,reco::RecoPFClusterRefCandidate> > > tpaaapfc2;
 
 edm::Wrapper<edm::RefVector<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate,edm::refhelper::FindUsingAdvance<std::vector<reco::RecoPFRecHitRefCandidate>,reco::RecoPFRecHitRefCandidate> > > tpaaapfrh2;
+
+edm::Wrapper<edm::RefVector<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit,edm::refhelper::FindUsingAdvance<std::vector<reco::CaloSuperHit>,reco::CaloSuperHit> > > tpaaacsh2;
 
 
   };

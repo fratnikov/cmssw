@@ -5,7 +5,8 @@ import FWCore.ParameterSet.Config as cms
 
 PFRecHitJetParameters = cms.PSet( 
 #    src            = cms.InputTag('pfCalibratedRecHitRefsForJets'),
-    src            = cms.InputTag('pfRecHitPileupSubtractor'),
+    src            = cms.InputTag('caloSuperHitProducer'),
+#    src            = cms.InputTag('pfRecHitPileupSubtractor'),
     srcPVs         = cms.InputTag('offlinePrimaryVertices'),
     jetType        = cms.string('BasicJet'),
     doOutputJets   = cms.bool(True),
@@ -51,9 +52,12 @@ ak5PFRecHitJets = cms.EDProducer(
 
 from RecoJets.JetProducers.PFRecHitsForJets_cfi import *
 from RecoJets.JetProducers.PFRecHitPileupSubtractor_cfi import *
+from RecoJets.JetProducers.CaloSuperHitProducer_cfi import *
 
 recoPFRecHitJets   =cms.Sequence(pfRecHitRefsForJetsHGEE+pfRecHitRefsForJetsHGHEF+pfRecHitRefsForJetsHGHEB+
                                  pfRecHitRefsForJetsEB+pfRecHitRefsForJetsHB+pfRecHitRefsForJetsHF+
-                                 pfRecHitRefsForJets+pfCalibratedRecHitRefsForJets+pfRecHitPileupSubtractor+
+                                 pfRecHitRefsForJets+pfCalibratedRecHitRefsForJets+
+#                                 pfRecHitPileupSubtractor+
+                                 caloSuperHitProducer+
                                  ak5PFRecHitJets)
 
