@@ -343,8 +343,8 @@ void PFRecHitPileupSubtractor::produce (edm::Event& iEvent,const edm::EventSetup
     double pNew = inHit.p();
     double meanP = square/fSquares.value (ldi, eta)*energies.value (ldi, eta);
     pNew -= meanP;
-    cout<<"PFRecHitPileupSubtractor::produce-> cell:eta "<<ldi<<':'<<eta
-	<<" orig/offset/cleaned: "<<inHit.p()<<'/'<<meanP<<'/'<<pNew<<endl;
+    // cout<<"PFRecHitPileupSubtractor::produce----> cell:eta "<<ldi<<':'<<eta
+    // 	<<" orig/offset/cleaned: "<<inHit.p()<<'/'<<meanP<<'/'<<pNew<<endl;
     if (pNew > 0) {
       double scale = pNew / inHit.p();
       math::PtEtaPhiMLorentzVector newP4 (scale*inHit.pt(),inHit.eta(),inHit.phi(),0);

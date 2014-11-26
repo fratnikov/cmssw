@@ -71,9 +71,9 @@ void CaloSuperHitProducer::produce (edm::Event& iEvent,const edm::EventSetup& iS
 {
   edm::Handle<RecoPFRecHitRefCandidateCollection> inputHits;
   iEvent.getByLabel(fInputLabel, inputHits);
+  std::cout<<"CaloSuperHitProducer::produce-> " << inputHits->size()<<" input hits"<<endl;
   std::auto_ptr<CaloSuperHitCollection> cleanedSuperHits  (new CaloSuperHitCollection ());
   // 1 loop fill energies
-  vector<double> allEnergies (fEtaBins.size(), 0.);
   map < pair<unsigned,unsigned>, CaloSuperHit > superHits;
   for (auto& inHit : *inputHits) {
     double eta = inHit.eta();
@@ -87,16 +87,36 @@ void CaloSuperHitProducer::produce (edm::Event& iEvent,const edm::EventSetup& iS
       superHit = CaloSuperHit(etaDEta.first, phiDPhi.first, etaDEta.second, phiDPhi.second);
     }
     superHit.addHit (inHit.pfRecHit()->detId(), inHit.p4());
-    allEnergies[localEta(superHit.etaCenter ())] += inHit.p()/2/TWOPI;
   }
-  // 2 loop remove energy from SuperHits
+  vector<double> allEnergies (fEtaBins.size(), 0.);
+  vector<double> allEnergies2 (fEtaBins.size(), 0.);
+  int n68 = 0;
+  for (const auto& sh : superHits) {
+    const CaloSuperHit& superHit = sh.second;
+    size_t iEta = localEta(superHit.etaCenter ());
+    double p = superHit.p();
+    allEnergies[iEta] += p;
+    allEnergies2[iEta] += p*p;
+    // if (iEta == 15) {
+    //   n68 += 1;
+    //   cout<<"iEta:"<<iEta<<" p "<<p<<" x:x^2 "<<allEnergies[iEta]<<':'<<allEnergies2[iEta]<<" <p>:sqrt(<p2>) " << allEnergies[iEta]/n68<<':'<<sqrt(allEnergies2[iEta]/n68)<<"  N:"<<n68<<" hit eta:phi "<<superHit.etaCenter ()<<':'<<superHit.phiCenter ()/TWOPI*360<<endl;
+    // }
+  }
+  // 3 loop remove energy from SuperHits
   for (auto& sh : superHits) {
     CaloSuperHit& superHit = sh.second;
     double pNew = superHit.p();
-    double meanP = allEnergies[localEta(superHit.etaCenter ())]*2*superHit.dPhi();
-    pNew -= meanP;
-    cout<<"CaloSuperHitProducer::produce-> ieta:iphi "<<sh.first.first<<':'<<sh.first.second
-	<<" orig/offset/cleaned: "<<superHit.p()<<'/'<<meanP<<'/'<<pNew<<endl;
+    size_t iEta = localEta(superHit.etaCenter ());
+    double nCells = TWOPI/superHit.dPhi();
+    double meanP = allEnergies[iEta]/nCells;
+    double meanP2 = allEnergies2[iEta]/nCells;
+    double sigma = sqrt (meanP2-meanP*meanP);
+    pNew -= (meanP+sigma);
+    // if (iEta == 15) {
+    //   cout<<"CaloSuperHitProducer::produce-> ieta:ieta:iphi "<<iEta<<':'<<sh.first.first<<':'<<sh.first.second<<" nCells:"<<nCells
+    // 	  <<" eta:phi "<<superHit.etaCenter()<<':'<<superHit.phiCenter()/TWOPI*360
+    // 	  <<" orig/meanP/sqrt(meanP2)/meanP2/sigma/cleaned: "<<superHit.p()<<'/'<<meanP<<':'<<sqrt(meanP2)<<'/'<<meanP2<<'>'<<sigma<<':'<<pNew<<endl;
+    // }
     if (pNew > 0) {
       double scale = pNew / superHit.p();
       math::PtEtaPhiMLorentzVector newP4 (scale*superHit.pt(),superHit.eta(),superHit.phi(),0);
