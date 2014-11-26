@@ -90,7 +90,7 @@ void CaloSuperHitProducer::produce (edm::Event& iEvent,const edm::EventSetup& iS
   }
   vector<double> allEnergies (fEtaBins.size(), 0.);
   vector<double> allEnergies2 (fEtaBins.size(), 0.);
-  int n68 = 0;
+  //  int n68 = 0;
   for (const auto& sh : superHits) {
     const CaloSuperHit& superHit = sh.second;
     size_t iEta = localEta(superHit.etaCenter ());
