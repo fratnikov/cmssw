@@ -18,8 +18,6 @@ CaloRecHitRecalibrator* CaloRecHitRecalibrator::newCaloRecHitRecalibrator (const
 CaloHGCRecHitRecalibrator:: CaloHGCRecHitRecalibrator (const edm::ParameterSet& pSet) 
   : mipValueInGeV (pSet.getParameter<double>("MipValueInGeV")),
     coef_a (pSet.getParameter<double>("effMip_to_InverseGeV_a")),	
-    coef_b (pSet.getParameter<double>("effMip_to_InverseGeV_b")),	
-    coef_c (pSet.getParameter<double>("effMip_to_InverseGeV_c")),
     weights (pSet.getParameter<vector<double> >("weights"))
 { 
 }
@@ -32,8 +30,9 @@ double  CaloHGCRecHitRecalibrator::recalibrateEnergy (double energy, double eta,
       -1;
     if (layer >= 1 || layer <= int(weights.size())) {
       double energy_MIP = energy/mipValueInGeV;
-      double eCorr = weights[layer]*energy_MIP;//std::cosh(eta);
-      double effMIP_to_InvGeV = coef_a/(1.0 + std::exp(-coef_c - coef_b*std::cosh(eta)));
+      double eCorr = weights[layer]*energy_MIP;
+      //double effMIP_to_InvGeV = coef_a/(1.0 + std::exp(-coef_c - coef_b*std::cosh(eta)));
+      double effMIP_to_InvGeV = coef_a;
       return eCorr/effMIP_to_InvGeV;
     }
     cout << "HGCalRecalibrator::recalibrateEnergy-> invalig layer " << layer << " expect 1.." << weights.size() << endl;

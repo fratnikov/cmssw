@@ -21,8 +21,6 @@ class CaloHGCRecHitRecalibrator : public CaloRecHitRecalibrator {
  private:
   double mipValueInGeV;
   double coef_a;
-  double coef_b;
-  double coef_c;
   std::vector<double> weights;
 };
 
