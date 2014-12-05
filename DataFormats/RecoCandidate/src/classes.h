@@ -17,6 +17,7 @@
 #include "DataFormats/RecoCandidate/interface/RecoEcalCandidateIsolation.h"
 #include "DataFormats/RecoCandidate/interface/FitResult.h"
 #include "DataFormats/RecoCandidate/interface/CaloRecHitCandidate.h"
+#include "DataFormats/RecoCandidate/interface/CaloSuperHit.h"
 #include "DataFormats/RecoCandidate/interface/TrackAssociation.h"
 #include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
 #include "DataFormats/RecoCandidate/interface/TrackCandidateAssociation.h"
@@ -127,5 +128,12 @@ namespace {
 
     edm::Wrapper<edm::OwnVector<reco::RecoCandidate> > wovrc;
 
+    reco::CaloRecHitCandidate crhc;
+    std::vector<reco::CaloRecHitCandidate> vcrhc;
+    edm::Wrapper<std::vector<reco::CaloRecHitCandidate> > w_vcrhc;
+
+    reco::CaloSuperHit csh;
+    std::vector<reco::CaloSuperHit> vcsh;
+    edm::Wrapper<std::vector<reco::CaloSuperHit> > w_vcsh;
   };
 }

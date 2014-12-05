@@ -31,18 +31,18 @@ namespace reco {
     /// returns a clone of the candidate
     virtual CaloRecHitCandidate * clone() const;
     /// set CaloRecHit reference
-    void setCaloRecHit( const CaloRecHitRef & r ) { caloRecHit_ = r; }
+    void setDetId( const CaloRecHitRef & r ) { detId = r->detid(); }
     /// reference to a CaloRecHit
-    CaloRecHitRef caloRecHit() const { return caloRecHit_; }
+    DetId detid() const { return DetId(detId); }
 
   private:
     /// check overlap with another candidate
     virtual bool overlap( const Candidate & ) const;
     /// reference to a CaloRecHit
-    CaloRecHitRef caloRecHit_;
+    uint32_t detId;
   };
     /// get default Track component
-  GET_DEFAULT_CANDIDATE_COMPONENT( CaloRecHitCandidate, edm::RefToBase<CaloRecHit>, caloRecHit );
+  //  GET_DEFAULT_CANDIDATE_COMPONENT( CaloRecHitCandidate, edm::RefToBase<CaloRecHit>, caloRecHit );
 
 }
 

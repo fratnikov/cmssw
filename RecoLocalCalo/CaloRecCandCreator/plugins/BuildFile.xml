@@ -1,0 +1,10 @@
+<library   file="*.cc" name="RecoLocalCaloCaloRecCandCreator_plugins">
+  <use   name="FWCore/Framework"/>
+  <use   name="Geometry/CaloGeometry"/>
+  <use   name="Geometry/Records"/>
+  <use   name="Geometry/FCalGeometry"/>
+  <use   name="DataFormats/RecoCandidate"/>
+  <use   name="DataFormats/ForwardDetId"/>
+  <use   name="RecoLocalCalo/CaloRecCandCreator"/>
+  <flags   EDM_PLUGIN="1"/>
+</library>

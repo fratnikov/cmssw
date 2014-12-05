@@ -1,4 +1,3 @@
-<flags   EDM_PLUGIN="1"/>
 <use   name="RecoLocalCalo/HcalRecAlgos"/>
 <use   name="FWCore/Framework"/>
 <use   name="DataFormats/Common"/>
@@ -9,3 +8,6 @@
 <use   name="Geometry/CaloGeometry"/>
 <use   name="Geometry/CaloTopology"/>
 <use   name="boost"/>
+<export>
+  <lib   name="1"/>
+</export>

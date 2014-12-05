@@ -21,9 +21,15 @@
   <class name="reco::RecoCaloTowerCandidate" ClassVersion="10">
    <version ClassVersion="10" checksum="4182970126"/>
   </class>
-  <class name="reco::CaloRecHitCandidate" ClassVersion="10">
-   <version ClassVersion="10" checksum="1441861764"/>
+  <class name="reco::CaloRecHitCandidate" ClassVersion="11">
+   <version ClassVersion="11" checksum="3500872508"/>
   </class>
+  <class name="std::vector<reco::CaloRecHitCandidate>"/>
+  <class name="edm::Wrapper<std::vector<reco::CaloRecHitCandidate> >"/>
+
+  <class name="reco::CaloSuperHit"/>
+  <class name="std::vector<reco::CaloSuperHit>"/>
+  <class name="edm::Wrapper<std::vector<reco::CaloSuperHit> >"/>
 
   <class name="reco::FitQuality"  ClassVersion="10">
    <version ClassVersion="10" checksum="1584619238"/>
