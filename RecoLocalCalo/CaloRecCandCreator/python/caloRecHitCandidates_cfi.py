@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 caloRecHitCandidatesEB = cms.EDProducer("CaloRecHitCandidateProducer",
            input = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
-           energyThreshold = cms.double(0),
+           energyThreshold = cms.double(0.08),
            recalibrator = cms.PSet (
               label = cms.string('None')
            )
@@ -10,7 +10,7 @@ caloRecHitCandidatesEB = cms.EDProducer("CaloRecHitCandidateProducer",
 
 caloRecHitCandidatesHBHE = cms.EDProducer("CaloRecHitCandidateProducer",
            input = cms.InputTag('hbheUpgradeReco'),
-           energyThreshold = cms.double(0),
+           energyThreshold = cms.double(0.4),
            recalibrator = cms.PSet (
               label = cms.string('None')
            )
@@ -18,7 +18,7 @@ caloRecHitCandidatesHBHE = cms.EDProducer("CaloRecHitCandidateProducer",
 
 caloRecHitCandidatesHF = cms.EDProducer("CaloRecHitCandidateProducer",
            input = cms.InputTag('hfUpgradeReco'),
-           energyThreshold = cms.double(0),
+           energyThreshold = cms.double(1.8),
            recalibrator = cms.PSet (
               label = cms.string('None')
            )
@@ -39,7 +39,8 @@ caloRecHitCandidatesHGCEE = cms.EDProducer("CaloRecHitCandidateProducer",
               label = cms.string('HGCalRecalibrator'),
               weights = cms.vdouble([0]+[0.080]+[0.62]*10+[0.809]*10+[1.239]*9),
               effMip_to_InverseGeV_a = cms.double(82.8),
-              MipValueInGeV = cms.double(55.1*1e-6)
+              MipValueInGeV = cms.double(55.1*1e-6),
+              thresholdInMIPs = cms.double(0.544)
            )
 )
 
@@ -50,18 +51,20 @@ caloRecHitCandidatesHGCHEF = cms.EDProducer("CaloRecHitCandidateProducer",
               label = cms.string('HGCalRecalibrator'),
               weights = cms.vdouble([0]+[0.0464]+[0.0474]*11),
               effMip_to_InverseGeV_a = cms.double(1.0),
-              MipValueInGeV = cms.double(85.0*1e-6)
+              MipValueInGeV = cms.double(85.0*1e-6),
+              thresholdInMIPs = cms.double(0.5)
            )
 )
 
 caloRecHitCandidatesHGCHEB = cms.EDProducer("CaloRecHitCandidateProducer",
            input = cms.InputTag("HGCalRecHit","HGCHEBRecHits"),
-           energyThreshold = cms.double(0),
+           energyThreshold = cms.double(0.1),
            recalibrator = cms.PSet (
               label = cms.string('HGCalRecalibrator'),
               weights = cms.vdouble([0]+[0.1215]*12),
               effMip_to_InverseGeV_a = cms.double(1.0),
-              MipValueInGeV = cms.double(1498.4*1e-6)
+              MipValueInGeV = cms.double(1498.4*1e-6),
+              thresholdInMIPs = cms.double(1.05)
            )
 )
 

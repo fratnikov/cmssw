@@ -37,6 +37,21 @@ using namespace std;
 
 namespace {
 
+  ostream& operator<< (ostream& stream, DetId detId){
+    if (detId.det() == DetId::Forward) {
+      if (detId.subdetId() == ForwardSubdetector::HGCEE) {
+	stream << HGCEEDetId (detId.rawId());
+      }
+      else {
+	stream << HGCHEDetId (detId.rawId());
+      }
+    }
+    else {
+      stream<<int(detId.det())<<':'<<detId.subdetId();
+    }
+    return stream;
+  }
+
   const CaloSubdetectorGeometry* getCaloSubdetectorGeometry (const edm::EventSetup & fSetup, DetId detId) {
     if (detId.det() == DetId::Forward) {
       edm::ESHandle<HGCalGeometry> hgGeometry;
@@ -59,6 +74,8 @@ namespace {
     GlobalPoint result (0,0,0);
     if (detId.det() == DetId::Forward) {
       result = dynamic_cast <const HGCalGeometry*> (geometry)->getPosition (detId);
+      //      cout<<"CellPosition-> "<<detId<<" "<<result.x()<<':'<<result.y()<<':'<<result.z()
+      //	  <<" "<<result.eta()<<':'<<result.phi()<<endl;
     }
     else {
       const CaloCellGeometry* cellGeometry =geometry->getGeometry (detId);
@@ -106,7 +123,8 @@ void CaloRecHitCandidateProducer::produce( edm::Event & fEvent, const edm::Event
     GlobalPoint pos = cellPosition (geometry, id);
     double eta = pos.eta();
     double energy = mRecalibrator->recalibrateEnergy (caloRecHit.energy(), pos.eta(), id);
-    if (energy < mEnergyThreshold) continue;
+    //    cout<<"CaloRecHitCandidateProducer::produce-> eta="<<eta<<':'<<pos.phi()<<" energy "<<caloRecHit.energy()<<" -> " <<energy<<endl;
+    if (energy <= mEnergyThreshold) continue;
     math::RhoEtaPhiVector p( 1, eta, pos.phi());
     p *= ( energy / p.r() );
     CaloRecHitCandidate crh ( Candidate::LorentzVector( p.x(), p.y(), p.z(), energy ) );

@@ -22,6 +22,7 @@ class CaloHGCRecHitRecalibrator : public CaloRecHitRecalibrator {
   double mipValueInGeV;
   double coef_a;
   std::vector<double> weights;
+  double threshold_MIP;
 };
 
 class CaloRecHitScaleRecalibrator : public CaloRecHitRecalibrator {
