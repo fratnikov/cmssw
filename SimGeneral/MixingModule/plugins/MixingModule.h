@@ -23,6 +23,7 @@
 #include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
+#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "DataFormats/TrackReco/interface/Track.h"

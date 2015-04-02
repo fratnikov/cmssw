@@ -480,6 +480,7 @@ void HcalDigitizer::accumulateCaloHits(edm::Handle<std::vector<PCaloHit> > const
 }
 
 void HcalDigitizer::accumulate(edm::Event const& e, edm::EventSetup const& eventSetup, CLHEP::HepRandomEngine* engine) {
+  std::cout << "HcalDigitizer::accumulate-> begin..." << std::endl;
   // Step A: Get Inputs
   edm::InputTag zdcTag(hitsProducer_, "ZDCHITS");
   edm::Handle<std::vector<PCaloHit> > zdcHandle;
@@ -495,6 +496,7 @@ void HcalDigitizer::accumulate(edm::Event const& e, edm::EventSetup const& event
 }
 
 void HcalDigitizer::accumulate(PileUpEventPrincipal const& e, edm::EventSetup const& eventSetup, CLHEP::HepRandomEngine* engine) {
+  std::cout << "HcalDigitizer::accumulatePileup-> begin..." << std::endl;
   // Step A: Get Inputs
   edm::InputTag zdcTag(hitsProducer_, "ZDCHITS");
   edm::Handle<std::vector<PCaloHit> > zdcHandle;

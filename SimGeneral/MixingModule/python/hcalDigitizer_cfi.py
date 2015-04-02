@@ -7,3 +7,8 @@ hcalDigitizer = cms.PSet(
     accumulatorType = cms.string("HcalDigiProducer"),
     makeDigiSimLinks = cms.untracked.bool(False))
 
+#hcalDigiMixer = cms.PSet(
+#    accumulatorType = cms.string("HcalDigiMixerHBHE"),
+#    src = cms.InputTag("simHcalDigis"),
+#    makeDigiSimLinks = cms.untracked.bool(False))
+

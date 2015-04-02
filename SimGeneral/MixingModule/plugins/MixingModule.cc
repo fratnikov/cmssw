@@ -43,6 +43,7 @@ namespace edm {
   mixProdStep1_(ps_mix.getParameter<bool>("mixProdStep1")),
   digiAccumulators_()
   {
+    std::cout << "======= MixingModule::MixingModule =======" << std::endl;
     if (!mixProdStep1_ && !mixProdStep2_) LogInfo("MixingModule") << " The MixingModule was run in the Standard mode.";
     if (mixProdStep1_) LogInfo("MixingModule") << " The MixingModule was run in the Step1 mode. It produces a mixed secondary source.";
     if (mixProdStep2_) LogInfo("MixingModule") << " The MixingModule was run in the Step2 mode. It uses a mixed secondary source.";
@@ -71,6 +72,7 @@ namespace edm {
       if (!pset.exists("type")) continue; //to allow replacement by empty pset
       std::string object = pset.getParameter<std::string>("type");
       std::vector<InputTag> tags=pset.getParameter<std::vector<InputTag> >("input");
+      std::cout<<"MixingModule::MixingModule-> "<<*it<<' '<<object<<' '<<tags[0]<<std::endl;
 
       //if (!mixProdStep2_) {
 
@@ -83,7 +85,7 @@ namespace edm {
             std::string label;
 
             branchesActivate(TypeID(typeid(std::vector<SimTrack>)).friendlyClassName(),std::string(""),tag,label);
-            adjustersObjects_.push_back(new Adjuster<SimTrack>(tag));
+            adjustersObjects_.push_back(new Adjuster<std::vector<SimTrack> >(tag));
             bool makeCrossingFrame = pset.getUntrackedParameter<bool>("makeCrossingFrame", false);
             if(makeCrossingFrame) {
               workersObjects_.push_back(new MixingWorker<SimTrack>(minBunch_,maxBunch_,bunchSpace_,std::string(""),label,labelCF,maxNbSources_,tag,tagCF));
@@ -113,7 +115,7 @@ namespace edm {
             std::string label;
 
             branchesActivate(TypeID(typeid(std::vector<SimVertex>)).friendlyClassName(),std::string(""),tag,label);
-            adjustersObjects_.push_back(new Adjuster<SimVertex>(tag));
+            adjustersObjects_.push_back(new Adjuster<std::vector<SimVertex> >(tag));
             bool makeCrossingFrame = pset.getUntrackedParameter<bool>("makeCrossingFrame", false);
             if(makeCrossingFrame) {
               workersObjects_.push_back(new MixingWorker<SimVertex>(minBunch_,maxBunch_,bunchSpace_,std::string(""),label,labelCF,maxNbSources_,tag,tagCF));
@@ -151,7 +153,7 @@ namespace edm {
               std::string label;
 
               branchesActivate(TypeID(typeid(std::vector<PCaloHit>)).friendlyClassName(),subdets[ii],tag,label);
-              adjustersObjects_.push_back(new Adjuster<PCaloHit>(tag));
+              adjustersObjects_.push_back(new Adjuster<std::vector<PCaloHit> >(tag));
               if(binary_search_all(crossingFrames, tag.instance())) {
                 workersObjects_.push_back(new MixingWorker<PCaloHit>(minBunch_,maxBunch_,bunchSpace_,subdets[ii],label,labelCF,maxNbSources_,tag,tagCF));
                 produces<CrossingFrame<PCaloHit> >(label);
@@ -174,7 +176,7 @@ namespace edm {
               std::string label;
 
               branchesActivate(TypeID(typeid(std::vector<PSimHit>)).friendlyClassName(),subdets[ii],tag,label);
-              adjustersObjects_.push_back(new Adjuster<PSimHit>(tag));
+              adjustersObjects_.push_back(new Adjuster<std::vector<PSimHit> >(tag));
               if(binary_search_all(crossingFrames, tag.instance())) {
                 workersObjects_.push_back(new MixingWorker<PSimHit>(minBunch_,maxBunch_,bunchSpace_,subdets[ii],label,labelCF,maxNbSources_,tag,tagCF));
                 produces<CrossingFrame<PSimHit> >(label);
@@ -184,7 +186,28 @@ namespace edm {
               LogInfo("MixingModule") <<"Will mix "<<object<<"s with InputTag= "<<tag.encode()<<", label will be "<<label;
               //              std::cout <<"Will mix "<<object<<"s with InputTag= "<<tag.encode()<<", label will be "<<label<<std::endl;
             }
-          } else {
+          } else if (object=="HCalDIGI") {
+            std::vector<std::string> subdets=pset.getParameter<std::vector<std::string> >("subdets");
+            std::vector<std::string> crossingFrames=pset.getUntrackedParameter<std::vector<std::string> >("crossingFrames", std::vector<std::string>());
+            sort_all(crossingFrames);
+            for (unsigned int ii=0;ii<subdets.size();++ii) {
+              InputTag tag;
+              if (tags.size()==1) tag=tags[0];
+              else if(tags.size()>1) tag=tags[ii];
+              std::string label;
+
+              branchesActivate(TypeID(typeid(HBHEDigiCollection)).friendlyClassName(),subdets[ii],tag,label);
+              adjustersObjects_.push_back(new Adjuster<HBHEDigiCollection>(tag));
+              if(binary_search_all(crossingFrames, tag.instance())) {
+                workersObjects_.push_back(new MixingWorker<HBHEDataFrame>(minBunch_,maxBunch_,bunchSpace_,subdets[ii],label,labelCF,maxNbSources_,tag,tagCF));
+                produces<CrossingFrame<HBHEDataFrame> >(label);
+                consumes<std::vector<HBHEDataFrame> >(tag);
+              }
+
+              LogInfo("MixingModule") <<"Will mix "<<object<<"s with InputTag= "<<tag.encode()<<", label will be "<<label;
+	      std::cout <<"Will mix "<<object<<"s with InputTag= "<<tag.encode()<<", label will be "<<label<<std::endl;
+            }
+           } else {
             LogWarning("MixingModule") <<"You have asked to mix an unknown type of object("<<object<<").\n If you want to include it in mixing, please contact the authors of the MixingModule!";
           }
       //} //if for mixProdStep2
@@ -356,9 +379,9 @@ namespace edm {
 
     }
 
-    //    for (int bunchIdx = minBunch_; bunchIdx <= maxBunch_; ++bunchIdx) {
-    //  std::cout << " bunch ID, Pileup, True " << bunchIdx << " " << PileupList[bunchIdx-minBunch_] << " " <<  TrueNumInteractions_[bunchIdx-minBunch_] << std::endl;
-    //}
+    for (int bunchIdx = minBunch_; bunchIdx <= maxBunch_; ++bunchIdx) {
+      std::cout << " bunch ID, Pileup, True " << bunchIdx << " " << PileupList[bunchIdx-minBunch_] << " " <<  TrueNumInteractions_[bunchIdx-minBunch_] << std::endl;
+    }
 
     int KeepTrackOfPileup = 0;
     std::vector<edm::EventID> eventInfoList;

@@ -6,6 +6,7 @@
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
+#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
@@ -35,7 +36,7 @@ namespace edm {
 
     virtual bool checkSignal(edm::Event const& event) {
       bool got = false;
-      edm::Handle<std::vector<T> > result_t;
+      edm::Handle<T> result_t;
       got = event.getByLabel(tag_, result_t);
       return got;
     }
@@ -53,13 +54,14 @@ namespace edm {
     void doTheOffset(int bunchspace, int bcr, std::vector<SimVertex>& product, unsigned int eventNr, int vertexOffset);
     void doTheOffset(int bunchspace, int bcr, std::vector<PCaloHit>& product, unsigned int eventNr, int vertexOffset);
     void doTheOffset(int bunchspace, int bcr, std::vector<PSimHit>& product, unsigned int eventNr, int vertexOffset);
+    void doTheOffset(int bunchspace, int bcr, HBHEDigiCollection& product, unsigned int eventNr, int vertexOffset);
   }
 
   template<typename T>
   void  Adjuster<T>::doOffset(int bunchspace, int bcr, const EventPrincipal &ep, ModuleCallingContext const* mcc, unsigned int eventNr, int vertexOffset) {
-    std::shared_ptr<Wrapper<std::vector<T> > const> shPtr = getProductByTag<std::vector<T> >(ep, tag_, mcc);
+    std::shared_ptr<Wrapper<T> const> shPtr = getProductByTag<T>(ep, tag_, mcc);
     if (shPtr) {
-      std::vector<T>& product = const_cast<std::vector<T>&>(*shPtr->product());
+      T& product = const_cast<T&>(*shPtr->product());
       detail::doTheOffset(bunchspace, bcr, product, eventNr, vertexOffset);
     }
   }

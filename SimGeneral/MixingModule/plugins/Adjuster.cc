@@ -43,5 +43,36 @@ void doTheOffset(int bunchSpace, int bcr, std::vector<PCaloHit>& calohits, unsig
     item.setTime(item.time() + timeOffset);
   }
 }
+
+  void doTheOffset(int bunchSpace, int bcr, HBHEDigiCollection& hcaldigi, unsigned int evtNr, int vertexOffset) { 
+    
+    EncodedEventId id(bcr,evtNr);
+    for (auto& item : hcaldigi) {
+      int size = item.size();
+      if (bcr > 0) {
+	for (int i = size; i > 0;) {
+	  --i;
+	  int newBX = i + bcr;
+	  if (newBX < size) {
+	    item.setSample (newBX, item.sample (i));
+	  }
+	} 
+	for (int i = 0; i < bcr; ++i) {
+	  item.setSample (i, 0);
+	}
+      }
+      else if (bcr < 0) {
+	for (int i = 0; i < size; ++i) {
+	  int newBX = i + bcr;
+	  if (newBX >= 0) {
+	    item.setSample (newBX, item.sample (i));
+	  }
+	} 
+	for (int i = size + bcr; i < size; ++i) {
+	  item.setSample (i, 0);
+	}
+      }
+    }
+  }
 }
 }
