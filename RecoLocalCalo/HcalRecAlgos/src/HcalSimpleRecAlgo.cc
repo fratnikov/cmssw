@@ -368,7 +368,9 @@ namespace HcalSimpleRecAlgoImpl {
         if( correctedOutput.back() == 0 && correctedOutput.size() >1 ){
           time = correctedOutput[1]; ampl = correctedOutput[0];
         }
-     // } else {time = -999; ampl = 0;}
+	else {
+	  time = -999; ampl = 0;
+	}
     }
     
     // S. Brandt - Feb 19th : Adding Section for HLT

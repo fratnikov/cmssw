@@ -26,6 +26,7 @@
 //
 #include "DataMixingEMDigiWorker.h"
 
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 
 using namespace std;
 
@@ -67,8 +68,6 @@ namespace edm
     EEDigiCollectionDM_        = ps.getParameter<std::string>("EEDigiCollectionDM");
     ESDigiCollectionDM_        = ps.getParameter<std::string>("ESDigiCollectionDM");
 
-
-
   }
 	       
 
@@ -91,7 +90,6 @@ namespace edm
      EBDigis = pEBDigis.product(); // get a ptr to the product
      LogDebug("DataMixingEMDigiWorker") << "total # EB digis: " << EBDigis->size();
    }
- 
    if (EBDigis)
      {
        // loop over digis, storing them in a map so we can add pileup later
@@ -99,7 +97,6 @@ namespace edm
 
        for(EBDigiCollection::const_iterator it  = EBDigis->begin();	
 	   it != EBDigis->end(); ++it) {
-
 	 EBDigiStorage_.insert(EBDigiMap::value_type( ( it->id() ), *it ));
 #ifdef DEBUG	 
          // Commented out because this does not compile anymore	 
@@ -128,7 +125,6 @@ namespace edm
        // loop over digis, storing them in a map so we can add pileup later
        for(EEDigiCollection::const_iterator it  = EEDigis->begin();	
 	   it != EEDigis->end(); ++it) {
-
 	 EEDigiStorage_.insert(EEDigiMap::value_type( ( it->id() ), *it ));
 #ifdef DEBUG	 
          // Commented out because this does not compile anymore	 
@@ -295,16 +291,6 @@ namespace edm
       currentID = iEB->first; 
 
       if (currentID == formerID) { // we have to add these digis together
-	/*	
-	cout<< " Adding signals " << EBDetId(currentID).ieta() << " " 
-	                          << EBDetId(currentID).iphi() << std::endl;
-
-	cout << 1 << " " ; 
-	for (int i=0; i<10;++i)  std::cout << EB_old[i].adc()<< "["<<EB_old[i].gainId()<< "] " ; std::cout << std::endl;
- 
-	cout << 2 << " " ; 
-	for (int i=0; i<10;++i)  std::cout << (iEB->second)[i].adc()<< "["<<(iEB->second)[i].gainId()<< "] " ; std::cout << std::endl;
-	*/
 	//loop over digi samples in each DataFrame
 	unsigned int sizenew = (iEB->second).size();
 	unsigned int sizeold = EB_old.size();
@@ -386,7 +372,6 @@ namespace edm
 	  EB_old.setSample(isamp,sample);  // overwrite old sample, adding new info
 	} // for sample
 
-
       } // if current = former
       else {
 	  if(formerID>0) {
@@ -395,7 +380,6 @@ namespace edm
 	  //save pointers for next iteration
 	  formerID = currentID;
 	  EB_old = iEB->second;
-
       }
 
 
@@ -468,8 +452,10 @@ namespace edm
           }
 	     
 
-	  // add values
-	  adc_sum = adc_new + adc_old;
+	  // add values, but don't count pedestals twice
+	  adc_sum = adc_new + adc_old - (int) round (pedeStals[gain_consensus-1]);
+	  // // add values
+	  // adc_sum = adc_new + adc_old;
 	  
 	  // if the sum saturates this gain, switch
 	  if (adc_sum> 4096) {
@@ -491,7 +477,7 @@ namespace edm
       else {
 	  if(formerID>0) {
 	    EEdigis->push_back(formerID, EE_old.frame().begin() );
-	     
+	    
 	  }
 	  //save pointers for next iteration
 	  formerID = currentID;
